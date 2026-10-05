@@ -1,0 +1,496 @@
+/* =========================
+   HOME
+========================= */
+
+.home {
+    width: 100%;
+}
+
+
+/* =========================
+   COMMON SECTION
+========================= */
+
+.section-heading {
+    max-width: 700px;
+    margin: 0 auto 50px;
+    text-align: center;
+}
+
+.section-tag {
+    color: #2563eb;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    margin-bottom: 18px;
+}
+
+.section-heading h2 {
+    margin-bottom: 15px;
+    font-size: 36px;
+}
+
+.section-heading > p:last-child {
+    color: #6b6375;
+    line-height: 1.6;
+}
+
+
+/* =========================
+   HERO
+========================= */
+
+.hero {
+    width: 100%;
+    max-width: 1280px;
+    min-height: 600px;
+
+    margin: 0 auto;
+    padding: 80px 30px;
+
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+
+    align-items: center;
+    gap: 60px;
+}
+
+.hero-content {
+    max-width: 700px;
+}
+
+.hero-tag {
+    color: #2563eb;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    margin-bottom: 18px;
+}
+
+.hero h1 {
+    margin-bottom: 25px;
+
+    font-size: 54px;
+    line-height: 1.12;
+    letter-spacing: -1.5px;
+}
+
+.hero h1 span {
+    color: #2563eb;
+}
+
+.hero-description {
+    max-width: 600px;
+
+    color: #6b6375;
+
+    font-size: 18px;
+    line-height: 1.7;
+
+    margin-bottom: 35px;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.primary-btn,
+.secondary-btn,
+.cta-button {
+    display: inline-block;
+
+    padding: 13px 24px;
+
+    border-radius: 6px;
+
+    text-decoration: none;
+
+    font-size: 15px;
+    font-weight: 600;
+
+    transition: 0.3s ease;
+}
+
+.primary-btn {
+    background-color: #2563eb;
+    color: white;
+}
+
+.primary-btn:hover {
+    background-color: #1d4ed8;
+}
+
+.secondary-btn {
+    border: 1px solid #2563eb;
+    color: #2563eb;
+}
+
+.secondary-btn:hover {
+    background-color: #eff6ff;
+}
+
+.hero-image {
+    display: flex;
+    justify-content: center;
+}
+
+.hero-card {
+    width: 320px;
+
+    padding: 45px 35px;
+
+    background-color: #f5f7ff;
+
+    border: 1px solid #e5e7eb;
+
+    border-radius: 20px;
+
+    text-align: center;
+
+    box-shadow:
+        0 20px 40px rgba(0, 0, 0, 0.08);
+}
+
+.hero-card-icon {
+    width: 80px;
+    height: 80px;
+
+    margin: 0 auto 25px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background-color: #dbeafe;
+
+    border-radius: 50%;
+
+    font-size: 40px;
+}
+
+.hero-card h3 {
+    margin-bottom: 12px;
+    font-size: 24px;
+}
+
+.hero-card p {
+    color: #6b6375;
+    line-height: 1.6;
+}
+
+
+/* =========================
+   ROLES
+========================= */
+
+.roles-section {
+    background-color: #f8fafc;
+    padding: 90px 30px;
+}
+
+.roles-container {
+    width: 100%;
+    max-width: 1200px;
+
+    margin: auto;
+
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 25px;
+}
+
+.role-card {
+    padding: 35px;
+
+    background-color: white;
+
+    border: 1px solid #e5e7eb;
+
+    border-radius: 12px;
+
+    transition: 0.3s ease;
+}
+
+.role-card:hover {
+    transform: translateY(-5px);
+
+    box-shadow:
+        0 15px 30px rgba(0, 0, 0, 0.08);
+}
+
+.role-icon {
+    width: 60px;
+    height: 60px;
+
+    margin-bottom: 20px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background-color: #eff6ff;
+
+    border-radius: 10px;
+
+    font-size: 30px;
+}
+
+.role-card h3 {
+    margin-bottom: 12px;
+    font-size: 22px;
+}
+
+.role-card p {
+    margin-bottom: 20px;
+
+    color: #6b6375;
+
+    line-height: 1.6;
+}
+
+.role-card a {
+    color: #2563eb;
+
+    text-decoration: none;
+
+    font-weight: 600;
+}
+
+
+/* =========================
+   FEATURES
+========================= */
+
+.features-section {
+    padding: 90px 30px;
+}
+
+.features-container {
+    width: 100%;
+    max-width: 1200px;
+
+    margin: auto;
+
+    display: grid;
+
+    grid-template-columns: repeat(4, 1fr);
+
+    gap: 20px;
+}
+
+.feature-card {
+    padding: 30px;
+
+    border: 1px solid #e5e7eb;
+
+    border-radius: 10px;
+
+    text-align: center;
+}
+
+.feature-icon {
+    font-size: 32px;
+    margin-bottom: 18px;
+}
+
+.feature-card h3 {
+    margin-bottom: 12px;
+    font-size: 19px;
+}
+
+.feature-card p {
+    color: #6b6375;
+
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+
+/* =========================
+   PROCESS
+========================= */
+
+.process-section {
+    padding: 90px 30px;
+    background-color: #f8fafc;
+}
+
+.process-container {
+    width: 100%;
+    max-width: 1100px;
+
+    margin: auto;
+
+    display: grid;
+
+    grid-template-columns: repeat(4, 1fr);
+
+    gap: 25px;
+}
+
+.process-step {
+    text-align: center;
+}
+
+.step-number {
+    width: 60px;
+    height: 60px;
+
+    margin: 0 auto 20px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background-color: #2563eb;
+    color: white;
+
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.process-step h3 {
+    margin-bottom: 10px;
+    font-size: 19px;
+}
+
+.process-step p {
+    color: #6b6375;
+
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+
+/* =========================
+   CTA
+========================= */
+
+.cta-section {
+    padding: 90px 30px;
+}
+
+.cta-content {
+    max-width: 900px;
+
+    margin: auto;
+
+    padding: 60px 30px;
+
+    border-radius: 15px;
+
+    background-color: #eff6ff;
+
+    text-align: center;
+}
+
+.cta-content h2 {
+    margin-bottom: 15px;
+    font-size: 34px;
+}
+
+.cta-content p {
+    margin-bottom: 25px;
+    color: #6b6375;
+}
+
+.cta-button {
+    background-color: #2563eb;
+    color: white;
+}
+
+.cta-button:hover {
+    background-color: #1d4ed8;
+}
+
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 1000px) {
+
+    .hero {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+
+    .hero-content {
+        margin: auto;
+    }
+
+    .hero-description {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .hero-buttons {
+        justify-content: center;
+    }
+
+    .roles-container {
+        grid-template-columns: 1fr;
+        max-width: 600px;
+    }
+
+    .features-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .process-container {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+
+@media (max-width: 600px) {
+
+    .hero {
+        padding: 60px 20px;
+    }
+
+    .hero h1 {
+        font-size: 38px;
+    }
+
+    .hero-description {
+        font-size: 16px;
+    }
+
+    .hero-card {
+        width: 100%;
+        max-width: 320px;
+    }
+
+    .roles-section,
+    .features-section,
+    .process-section,
+    .cta-section {
+        padding: 60px 20px;
+    }
+
+    .section-heading h2 {
+        font-size: 30px;
+    }
+
+    .features-container {
+        grid-template-columns: 1fr;
+    }
+
+    .process-container {
+        grid-template-columns: 1fr;
+    }
+
+    .cta-content {
+        padding: 40px 20px;
+    }
+
+    .cta-content h2 {
+        font-size: 28px;
+    }
+}

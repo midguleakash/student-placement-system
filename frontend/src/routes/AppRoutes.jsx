@@ -9,14 +9,14 @@ import CompanyRegister from "../pages/auth/CompanyRegister";
 // import Jobs from "../pages/jobs/Jobs";
 // import JobDetails from "../pages/jobs/JobDetails";
 
-// import StudentDashboard from "../pages/student/StudentDashboard";
+import StudentDashboard from "../pages/student/StudentDashboard";
 // import Profile from "../pages/student/Profile";
 // import Applications from "../pages/student/Applications";
 // import Interviews from "../pages/student/Interviews";
 
-// import CompanyDashboard from "../pages/company/CompanyDashboard";
+import CompanyDashboard from "../pages/company/CompanyDashboard";
 
-// import AdminDashboard from "../pages/admin/AdminDashboard";
+import AdminDashboard from "../pages/admin/AdminDashboard";
 
 function AppRoutes() {
     return (
@@ -38,11 +38,11 @@ function AppRoutes() {
                 path="/student/register"
                 element={<StudentRegister />}
             />
-{/* 
+
             <Route
                 path="/company/register"
                 element={<CompanyRegister />}
-            /> */}
+            />
 
 
             {/* <Route
@@ -58,10 +58,10 @@ function AppRoutes() {
 
             {/* Student Pages */}
 
-            {/* <Route
+            <Route
                 path="/student/dashboard"
                 element={<StudentDashboard />}
-            /> */}
+            />
 
             {/* <Route
                 path="/student/profile"
@@ -80,19 +80,19 @@ function AppRoutes() {
 
 
             {/* Company Pages */}
-{/* 
+
             <Route
                 path="/company/dashboard"
                 element={<CompanyDashboard />}
-            /> */}
+            />
 
 
             {/* Admin Pages */}
 
-            {/* <Route
+            <Route
                 path="/admin/dashboard"
                 element={<AdminDashboard />}
-            /> */}
+            />
 
         </Routes>
     );

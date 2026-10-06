@@ -1,0 +1,439 @@
+.student-dashboard {
+    min-height: calc(100vh - 140px);
+    display: flex;
+    background-color: #f8fafc;
+}
+
+/* Sidebar */
+
+.student-sidebar {
+    width: 240px;
+    min-height: calc(100vh - 140px);
+    background-color: #111827;
+    padding: 25px 15px;
+    display: flex;
+    flex-direction: column;
+}
+
+.student-logo {
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 700;
+    padding: 10px 15px 30px;
+}
+
+.student-logo span {
+    color: #60a5fa;
+}
+
+.student-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.student-menu a {
+    text-decoration: none;
+    color: #d1d5db;
+    padding: 12px 15px;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: 0.2s;
+}
+
+.student-menu a:hover {
+    background-color: #1f2937;
+    color: #ffffff;
+}
+
+.student-logout {
+    margin-top: auto;
+    padding: 15px;
+}
+
+.student-logout button {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #374151;
+    border-radius: 6px;
+    background: transparent;
+    color: #d1d5db;
+    cursor: pointer;
+}
+
+/* Main */
+
+.student-main {
+    flex: 1;
+}
+
+/* Header */
+
+.student-header {
+    height: 75px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 0 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.student-header h2 {
+    margin: 0;
+    font-size: 20px;
+    color: #111827;
+}
+
+.student-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.notification-btn {
+    border: none;
+    background: transparent;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.student-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.student-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background-color: #2563eb;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+
+.student-user div:last-child {
+    display: flex;
+    flex-direction: column;
+}
+
+.student-user strong {
+    font-size: 13px;
+}
+
+.student-user span {
+    color: #6b7280;
+    font-size: 12px;
+}
+
+/* Content */
+
+.student-content {
+    padding: 30px;
+}
+
+.student-welcome {
+    margin-bottom: 25px;
+}
+
+.student-welcome h1 {
+    margin: 0 0 8px;
+    font-size: 26px;
+    color: #111827;
+}
+
+.student-welcome p {
+    margin: 0;
+    color: #6b7280;
+}
+
+/* Stats */
+
+.student-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.student-stat-card {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 22px;
+}
+
+.student-stat-card p {
+    margin: 0 0 10px;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.student-stat-card h2 {
+    margin: 0;
+    font-size: 28px;
+    color: #111827;
+}
+
+/* Profile Progress */
+
+.profile-progress {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 22px;
+    margin-bottom: 25px;
+}
+
+.profile-progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.profile-progress-header h3 {
+    margin: 0 0 6px;
+    font-size: 17px;
+}
+
+.profile-progress-header p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.profile-progress-header strong {
+    font-size: 22px;
+    color: #2563eb;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background-color: #e5e7eb;
+    border-radius: 10px;
+    margin: 18px 0;
+    overflow: hidden;
+}
+
+.progress-value {
+    height: 100%;
+    background-color: #2563eb;
+    border-radius: 10px;
+}
+
+.profile-progress a {
+    color: #2563eb;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* Dashboard Grid */
+
+.student-dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.dashboard-section {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.section-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.section-title h3 {
+    margin: 0;
+    font-size: 17px;
+}
+
+.section-title a {
+    color: #2563eb;
+    font-size: 13px;
+    text-decoration: none;
+}
+
+/* Jobs */
+
+.student-job-item {
+    padding: 15px 0;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+.student-job-item:last-child {
+    border-bottom: none;
+}
+
+.student-job-item h4 {
+    margin: 0 0 5px;
+    font-size: 14px;
+}
+
+.student-job-item p {
+    margin: 0 0 5px;
+    color: #6b7280;
+    font-size: 12px;
+}
+
+.student-job-item span {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.apply-btn,
+.applied-btn {
+    padding: 7px 12px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.apply-btn {
+    background-color: #2563eb;
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.applied-btn {
+    border: 1px solid #d1d5db;
+    background-color: #f3f4f6;
+    color: #6b7280;
+}
+
+/* Applications */
+
+.student-application-item {
+    padding: 13px 0;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.student-application-item:last-child {
+    border-bottom: none;
+}
+
+.student-application-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.company-small-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+.student-application-info h4 {
+    margin: 0 0 4px;
+    font-size: 13px;
+}
+
+.student-application-info p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 12px;
+}
+
+.student-application-status {
+    font-size: 11px;
+    padding: 5px 8px;
+    border-radius: 15px;
+}
+
+.student-application-status.shortlisted {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.student-application-status.reviewing {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+}
+
+.student-application-status.rejected {
+    background-color: #fee2e2;
+    color: #b91c1c;
+}
+
+/* Responsive */
+
+@media (max-width: 1000px) {
+
+    .student-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .student-dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 700px) {
+
+    .student-sidebar {
+        width: 190px;
+    }
+
+    .student-content {
+        padding: 20px;
+    }
+
+    .student-header {
+        padding: 0 20px;
+    }
+}
+
+@media (max-width: 550px) {
+
+    .student-dashboard {
+        flex-direction: column;
+    }
+
+    .student-sidebar {
+        width: 100%;
+        min-height: auto;
+    }
+
+    .student-menu {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .student-logout {
+        margin-top: 15px;
+    }
+
+    .student-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-progress-header {
+        align-items: flex-start;
+    }
+}

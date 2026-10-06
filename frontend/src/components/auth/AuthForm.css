@@ -68,3 +68,35 @@
     text-decoration: none;
     font-weight: 600;
 }
+
+/* ============================= */
+/* OTP SECTION */
+/* ============================= */
+
+.otp-section {
+    margin-top: 15px;
+}
+
+
+.otp-input-section {
+    margin-top: 15px;
+}
+
+
+.otp-input-section .form-group {
+    margin-bottom: 10px;
+}
+
+
+/* ============================= */
+/* DISABLED BUTTON */
+/* ============================= */
+
+.auth-submit {
+     margin-bottom: 10px;
+}
+.auth-submit:disabled {
+    margin-bottom: 10px;
+    opacity: 0.6;
+    cursor: not-allowed;
+}

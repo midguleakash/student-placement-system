@@ -1,20 +1,26 @@
 package com.akash.auth.controller;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    @GetMapping("/test")
-    public String test() {
-        return "Auth Service is working!";
-    }
+    @PostMapping("/register/send-otp")
+    public ResponseEntity<Map<String, String>> testSendOtp(
+            @RequestBody Map<String, Object> request) {
 
-    @GetMapping("/")
-    public String authHome() {
-        return "Auth Controller is working!";
+        System.out.println("========== AUTH SERVICE ==========");
+        System.out.println("Received Send OTP request!");
+        System.out.println("Email: " + request.get("email"));
+        System.out.println("==================================");
+
+        return ResponseEntity.ok(Map.of(
+                "message", "Request successfully reached Auth Service",
+                "status", "SUCCESS"
+        ));
     }
 }

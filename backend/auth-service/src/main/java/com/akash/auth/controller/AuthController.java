@@ -1,4 +1,10 @@
+
 package com.akash.auth.controller;
+
+import com.akash.auth.dto.SendOtpRequest;
+import com.akash.auth.service.OtpService;
+
+import jakarta.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,18 +15,21 @@ import java.util.Map;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    @PostMapping("/register/send-otp")
-    public ResponseEntity<Map<String, String>> testSendOtp(
-            @RequestBody Map<String, Object> request) {
+    private final OtpService otpService;
 
-        System.out.println("========== AUTH SERVICE ==========");
-        System.out.println("Received Send OTP request!");
-        System.out.println("Email: " + request.get("email"));
-        System.out.println("==================================");
+    public AuthController(OtpService otpService) {
+        this.otpService = otpService;
+    }
+
+    @PostMapping("/register/send-otp")
+    public ResponseEntity<Map<String, String>> sendOtp(
+            @Valid @RequestBody SendOtpRequest request) {
+
+        otpService.sendOtp(request);
 
         return ResponseEntity.ok(Map.of(
-                "message", "Request successfully reached Auth Service",
-                "status", "SUCCESS"
+                "status", "SUCCESS",
+                "message", "OTP sent successfully to your email"
         ));
     }
 }

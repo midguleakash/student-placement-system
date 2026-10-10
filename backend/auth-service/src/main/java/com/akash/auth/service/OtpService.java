@@ -1,84 +1,55 @@
+
 package com.akash.auth.service;
 
+import com.akash.auth.dto.SendOtpRequest;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
-import java.time.LocalDateTime;
-import java.util.Map;
+import java.time.Instant;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 @Service
 public class OtpService {
 
+    private final EmailService emailService;
     private final SecureRandom secureRandom = new SecureRandom();
 
-    private final Map<String, OtpData> otpStore =
+    private final ConcurrentMap<String, OtpEntry> otpStore =
             new ConcurrentHashMap<>();
 
+    // Temporary registration data, used after OTP verification.
+    private final ConcurrentMap<String, SendOtpRequest> pendingRegistrations =
+            new ConcurrentHashMap<>();
 
-    public String generateOtp(String email) {
+    public OtpService(EmailService emailService) {
+        this.emailService = emailService;
+    }
 
-        String normalizedEmail =
-                email.toLowerCase().trim();
+    public void sendOtp(SendOtpRequest request) {
 
-        String otp =
-                String.valueOf(
-                        100000 + secureRandom.nextInt(900000)
-                );
+        String email = request.getEmail().trim().toLowerCase();
 
-        LocalDateTime expiresAt =
-                LocalDateTime.now().plusMinutes(5);
-
-        otpStore.put(
-                normalizedEmail,
-                new OtpData(otp, expiresAt)
+        String otp = String.format(
+                "%06d", secureRandom.nextInt(1_000_000)
         );
 
-        return otp;
+        Instant expiresAt = Instant.now().plusSeconds(300);
+
+        otpStore.put(email, new OtpEntry(otp, expiresAt));
+        pendingRegistrations.put(email, request);
+
+        try {
+            emailService.sendOtpEmail(email, otp);
+        } catch (RuntimeException ex) {
+            // Do not leave a usable OTP if email delivery fails.
+            otpStore.remove(email);
+            pendingRegistrations.remove(email);
+            throw new IllegalStateException(
+                    "Unable to send OTP email. Please try again."
+            );
+        }
     }
 
-
-    public boolean verifyOtp(
-            String email,
-            String enteredOtp) {
-
-        String normalizedEmail =
-                email.toLowerCase().trim();
-
-        OtpData otpData =
-                otpStore.get(normalizedEmail);
-
-        // OTP doesn't exist
-        if (otpData == null) {
-            return false;
-        }
-
-        // OTP expired
-        if (LocalDateTime.now()
-                .isAfter(otpData.expiresAt())) {
-
-            otpStore.remove(normalizedEmail);
-
-            return false;
-        }
-
-        // OTP incorrect
-        if (!otpData.otp()
-                .equals(enteredOtp)) {
-
-            return false;
-        }
-
-        // OTP correct
-        otpStore.remove(normalizedEmail);
-
-        return true;
-    }
-
-
-    private record OtpData(
-            String otp,
-            LocalDateTime expiresAt
-    ) {
-    }
+    private record OtpEntry(String otp, Instant expiresAt) {}
 }

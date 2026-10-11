@@ -100,3 +100,39 @@
     opacity: 0.6;
     cursor: not-allowed;
 }
+
+
+
+.form-message {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    margin: 14px 0;
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.success-message {
+    color: #166534;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+}
+
+.error-message {
+    color: #991b1b;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+}
+
+
+.field-error {
+    color: #dc2626;
+    font-size: 13px;
+    line-height: 1.4;
+    margin-top: -8px;
+    margin-bottom: 12px;
+}
+

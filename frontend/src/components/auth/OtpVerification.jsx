@@ -8,6 +8,7 @@ import {
 function OtpVerification({
     email,
     registrationData,
+    canSendOtp,
     onVerified,
     onError,
     onMessage
@@ -144,6 +145,7 @@ function OtpVerification({
                 className="auth-submit"
                 onClick={handleSendOtp}
                 disabled={
+                    !canSendOtp ||
                     loading ||
                     otpSent ||
                     !email

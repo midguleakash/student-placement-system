@@ -17,6 +17,33 @@ function StudentRegister() {
         confirmPassword: ""
     });
 
+
+
+    const emailValid =
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+            formData.email.trim()
+        );
+
+    const phoneValid =
+        /^[6-9]\d{9}$/.test(formData.phone.trim());
+
+    const passwordValid =
+        formData.password.length >= 8 &&
+        formData.password.length <= 72;
+
+    const confirmPasswordValid =
+        formData.confirmPassword !== "" &&
+        formData.password === formData.confirmPassword;
+
+    const isFormFilled =
+        formData.firstName.trim() !== "" &&
+        formData.lastName.trim() !== "" &&
+        emailValid &&
+        phoneValid &&
+        passwordValid &&
+        confirmPasswordValid;
+
+
     const [otpVerified, setOtpVerified] = useState(false);
 
     const [message, setMessage] = useState("");
@@ -140,15 +167,27 @@ function StudentRegister() {
             );
 
 
-            const data = await response.text();
+            const data = await response.json();
 
 
+            // Handle backend errors
             if (!response.ok) {
-                throw new Error(data);
+                throw new Error(
+                    data.message ||
+                    data.detail ||
+                    data.error ||
+                    "Registration failed. Please try again."
+                );
             }
 
 
-            setMessage(data);
+
+            // Display only the success message
+            setMessage(
+                data.message || "Student account created successfully."
+            );
+
+            setError("");
 
 
             // Clear form
@@ -172,6 +211,8 @@ function StudentRegister() {
                 error.message ||
                 "Registration failed."
             );
+
+            setMessage("");
 
         } finally {
 
@@ -227,6 +268,12 @@ function StudentRegister() {
                     placeholder="Enter email"
                 />
 
+                {formData.email && !emailValid && (
+                    <p className="field-error">
+                        Please enter a valid email address.
+                    </p>
+                )}
+
 
                 {/* ================================= */}
                 {/* PHONE */}
@@ -240,6 +287,14 @@ function StudentRegister() {
                     onChange={handleChange}
                     placeholder="Enter phone number"
                 />
+
+
+                {formData.phone && !phoneValid && (
+                    <p className="field-error">
+                        Enter a valid 10-digit Indian mobile number.
+                    </p>
+                )}
+
 
 
                 {/* ================================= */}
@@ -256,6 +311,14 @@ function StudentRegister() {
                 />
 
 
+                {formData.password && !passwordValid && (
+                    <p className="field-error">
+                        Password must contain 8 to 72 characters.
+                    </p>
+                )}
+
+
+
                 {/* ================================= */}
                 {/* CONFIRM PASSWORD */}
                 {/* ================================= */}
@@ -268,6 +331,14 @@ function StudentRegister() {
                     onChange={handleChange}
                     placeholder="Confirm password"
                 />
+
+
+                {formData.confirmPassword && !confirmPasswordValid && (
+                    <p className="field-error">
+                        Passwords do not match.
+                    </p>
+                )}
+
 
 
                 {/* ================================= */}
@@ -283,6 +354,7 @@ function StudentRegister() {
                         phone: formData.phone,
                         password: formData.password
                     }}
+                    canSendOtp={isFormFilled}
                     onVerified={handleOtpVerified}
                     onError={setError}
                     onMessage={setMessage}
@@ -293,22 +365,21 @@ function StudentRegister() {
                 {/* MESSAGE */}
                 {/* ================================= */}
 
+
                 {message && (
-
-                    <p className="success-message">
-                        {message}
-                    </p>
-
+                    <div className="form-message success-message" role="status">
+                        <span aria-hidden="true">✓</span>
+                        <span>{message}</span>
+                    </div>
                 )}
-
 
                 {error && (
-
-                    <p className="error-message">
-                        {error}
-                    </p>
-
+                    <div className="form-message error-message" role="alert">
+                        <span aria-hidden="true">!</span>
+                        <span>{error}</span>
+                    </div>
                 )}
+
 
 
                 {/* ================================= */}

@@ -1,5 +1,17 @@
 const API_BASE_URL = "http://localhost:8080";
 
+// STEP 1: Handle backend response
+const handleResponse = async (response) => {
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(
+            data.message || "Something went wrong."
+        );
+    }
+
+    return data;
+};
 
 // ======================================
 // SEND OTP
@@ -20,16 +32,7 @@ export const sendRegistrationOtp = async (registrationData) => {
         }
     );
 
-
-    const data = await response.text();
-
-
-    if (!response.ok) {
-        throw new Error(data);
-    }
-
-
-    return data;
+    return handleResponse(response);
 };
 
 
@@ -59,13 +62,5 @@ export const verifyRegistrationOtp = async (
     );
 
 
-    const data = await response.text();
-
-
-    if (!response.ok) {
-        throw new Error(data);
-    }
-
-
-    return data;
+    return handleResponse(response);
 };

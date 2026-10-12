@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import LogoutButton from "../../components/auth/LogoutButton";
 
 function AdminSidebar() {
     return (
@@ -54,9 +55,7 @@ function AdminSidebar() {
 
             <div className="admin-logout">
 
-                <button>
-                    Logout
-                </button>
+                <LogoutButton />
 
             </div>
 

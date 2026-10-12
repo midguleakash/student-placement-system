@@ -2,35 +2,44 @@ import AuthLayout from "../../components/auth/AuthLayout";
 import LoginForm from "../../components/auth/LoginForm";
 
 import "../../components/auth/AuthForm.css";
+import Navbar from "../../components/common/Navbar";
+import Footer from "../../components/common/Footer";
 
 function Login() {
     return (
-        <AuthLayout
-            title="Welcome Back"
-            subtitle="Login to your Student Placement account"
-        >
+        <>
 
-            <LoginForm />
+            <Navbar />
+            <AuthLayout
+                title="Welcome Back"
+                subtitle="Login to your Student Placement account"
+            >
 
-            <div className="auth-link">
 
-                Don't have an account?
+                <LoginForm />
 
-                <br />
+                <div className="auth-link">
 
-                <a href="/student/register">
-                    Register as Student
-                </a>
+                    Don't have an account?
 
-                {" | "}
+                    <br />
 
-                <a href="/company/register">
-                    Register Company
-                </a>
+                    <a href="/student/register">
+                        Register as Student
+                    </a>
 
-            </div>
+                    {" | "}
 
-        </AuthLayout>
+                    <a href="/company/register">
+                        Register Company
+                    </a>
+
+                </div>
+
+                
+            </AuthLayout>
+            <Footer />
+        </>
     );
 }
 

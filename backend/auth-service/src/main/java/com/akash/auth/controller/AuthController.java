@@ -1,9 +1,6 @@
 package com.akash.auth.controller;
 
-import com.akash.auth.dto.ApiResponse;
-import com.akash.auth.dto.RegisterRequest;
-import com.akash.auth.dto.SendOtpRequest;
-import com.akash.auth.dto.VerifyOtpRequest;
+import com.akash.auth.dto.*;
 import com.akash.auth.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -18,6 +15,11 @@ public class AuthController {
 
     public AuthController(AuthService authService) {
         this.authService = authService;
+    }
+
+    @GetMapping("/")
+    public ResponseEntity<String> home() {
+        return ResponseEntity.ok("Auth Service is running");
     }
 
     @PostMapping("/register/send-otp")
@@ -63,5 +65,15 @@ public class AuthController {
                         "SUCCESS"
                 )
         );
+    }
+
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponse> login(
+            @Valid @RequestBody LoginRequest request) {
+
+        AuthResponse response = authService.login(request);
+
+        return ResponseEntity.ok(response);
     }
 }

@@ -1,11 +1,16 @@
 package com.akash.auth.service;
 
 import ch.qos.logback.classic.encoder.JsonEncoder;
+import com.akash.auth.dto.AuthResponse;
+import com.akash.auth.dto.LoginRequest;
 import com.akash.auth.dto.RegisterRequest;
 import com.akash.auth.model.User;
 import com.akash.auth.repository.UserRepository;
+import com.akash.auth.security.JwtService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Locale;
 
 @Service
 public class AuthServiceImpl implements AuthService {
@@ -13,14 +18,18 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final OtpService otpService;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     public AuthServiceImpl(
             UserRepository userRepository,
             OtpService otpService,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder,
+            JwtService jwtService) {
+
         this.userRepository = userRepository;
         this.otpService = otpService;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
     @Override
@@ -83,5 +92,44 @@ public class AuthServiceImpl implements AuthService {
         user.setEmailVerified(true);
 
         userRepository.save(user);
+    }
+
+
+    @Override
+    public AuthResponse login(LoginRequest request) {
+
+        String email = request.getEmail()
+                .trim()
+                .toLowerCase(Locale.ROOT);
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Invalid email or password."
+                        )
+                );
+
+        if (!passwordEncoder.matches(
+                request.getPassword(),
+                user.getPassword())) {
+
+            throw new IllegalArgumentException(
+                    "Invalid email or password."
+            );
+        }
+
+        if (!user.isEmailVerified()) {
+            throw new IllegalArgumentException(
+                    "Please verify your email before logging in."
+            );
+        }
+
+        String token = jwtService.generateToken(user);
+
+        return new AuthResponse(
+                token,
+                user.getRole().name(),
+                "Login successful."
+        );
     }
 }

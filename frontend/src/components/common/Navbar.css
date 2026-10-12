@@ -1,4 +1,16 @@
+body {
+    padding-top: 66px;
+}
+
+
 .navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+
+    box-sizing: border-box;
     background-color: #ffffff;
     border-bottom: 1px solid #e5e5e5;
     padding: 15px 0;

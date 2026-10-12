@@ -1,3 +1,4 @@
+
 import { Routes, Route } from "react-router-dom";
 
 import Home from "../pages/home/Home";
@@ -17,6 +18,7 @@ import StudentDashboard from "../pages/student/StudentDashboard";
 import CompanyDashboard from "../pages/company/CompanyDashboard";
 
 import AdminDashboard from "../pages/admin/AdminDashboard";
+import ProtectedRoute from "../components/auth/ProtectedRoute";
 
 function AppRoutes() {
     return (
@@ -24,75 +26,100 @@ function AppRoutes() {
 
             {/* Public Pages */}
 
-            <Route
-                path="/"
-                element={<Home />}
-            />
 
-            <Route
-                path="/login"
-                element={<Login />}
-            />
+            {/* Home is accessible only when logged out */}
+            <Route element={<ProtectedRoute guestOnly />}>
+                <Route
+                    path="/"
+                    element={<Home />}
+                />
 
-            <Route
-                path="/student/register"
-                element={<StudentRegister />}
-            />
+                <Route
+                    path="/login"
+                    element={<Login />}
+                />
 
-            <Route
-                path="/company/register"
-                element={<CompanyRegister />}
-            />
+                <Route
+                    path="/student/register"
+                    element={<StudentRegister />}
+                />
 
-
-            {/* <Route
-                path="/jobs"
-                element={<Jobs />}
-            />
-
-            <Route
-                path="/jobs/:id"
-                element={<JobDetails />}
-            /> */}
+                <Route
+                    path="/company/register"
+                    element={<CompanyRegister />}
+                />
+            </Route>
 
 
-            {/* Student Pages */}
+            {/* All routes below require login */}
 
-            <Route
-                path="/student/dashboard"
-                element={<StudentDashboard />}
-            />
+            <Route element={<ProtectedRoute />}>
 
-            {/* <Route
-                path="/student/profile"
-                element={<Profile />}
-            />
+                {/* <Route
+                    path="/jobs"
+                    element={<Jobs />}
+                />
 
-            <Route
-                path="/student/applications"
-                element={<Applications />}
-            /> */}
+                <Route
+                    path="/jobs/:id"
+                    element={<JobDetails />}
+                /> */}
 
-            {/* <Route
-                path="/student/interviews"
-                element={<Interviews />}
-            /> */}
+                {/* Student Pages */}
 
+                <Route
+                    element={
+                        <ProtectedRoute allowedRoles={["STUDENT"]} />
+                    }
+                >
+                    <Route
+                        path="/student/dashboard"
+                        element={<StudentDashboard />}
+                    />
 
-            {/* Company Pages */}
+                    {/* <Route
+                        path="/student/profile"
+                        element={<Profile />}
+                    />
 
-            <Route
-                path="/company/dashboard"
-                element={<CompanyDashboard />}
-            />
+                    <Route
+                        path="/student/applications"
+                        element={<Applications />}
+                    />
 
+                    <Route
+                        path="/student/interviews"
+                        element={<Interviews />}
+                    /> */}
+                </Route>
 
-            {/* Admin Pages */}
+                {/* Company Pages */}
 
-            <Route
-                path="/admin/dashboard"
-                element={<AdminDashboard />}
-            />
+                <Route
+                    element={
+                        <ProtectedRoute allowedRoles={["COMPANY"]} />
+                    }
+                >
+                    <Route
+                        path="/company/dashboard"
+                        element={<CompanyDashboard />}
+                    />
+                </Route>
+
+                {/* Admin Pages */}
+
+                <Route
+                    element={
+                        <ProtectedRoute allowedRoles={["ADMIN"]} />
+                    }
+                >
+                    <Route
+                        path="/admin/dashboard"
+                        element={<AdminDashboard />}
+                    />
+                </Route>
+
+            </Route>
 
         </Routes>
     );

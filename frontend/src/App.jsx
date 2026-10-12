@@ -11,14 +11,14 @@ function App() {
 
   return (
     <>
-      <Navbar />
+      
 
       <main>
         <AppRoutes />
         
       </main>
 
-      <Footer />
+      
     </>
   )
 }

@@ -7,8 +7,15 @@
 /* Sidebar */
 
 .company-sidebar {
+    position: fixed;
+    top: 0px; /* Below your main Navbar */
+    left: 0;
+    bottom: 0;
+
     width: 240px;
-    min-height: calc(100vh - 140px);
+    box-sizing: border-box;
+    overflow-y: auto;
+
     background-color: #111827;
     padding: 25px 15px;
     display: flex;
@@ -62,21 +69,31 @@
 }
 
 /* Main */
-
 .company-main {
     flex: 1;
+    min-width: 0;
+    margin-left: 240px;
 }
 
 /* Header */
 
+/* Fixed Company Header */
 .company-header {
+    position: fixed;
+    top: 0px; /* Below your main Navbar */
+    left: 240px; /* Beside sidebar */
+    right: 0;
     height: 75px;
+    box-sizing: border-box;
+
     background-color: #ffffff;
     border-bottom: 1px solid #e5e7eb;
     padding: 0 30px;
+
     display: flex;
     align-items: center;
     justify-content: space-between;
+    z-index: 1000;
 }
 
 .company-header h2 {
@@ -134,6 +151,7 @@
 
 .company-content {
     padding: 30px;
+    padding-top: 105px;
 }
 
 .company-welcome {

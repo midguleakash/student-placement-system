@@ -64,3 +64,31 @@ export const verifyRegistrationOtp = async (
 
     return handleResponse(response);
 };
+
+
+export async function loginUser(email, password) {
+    const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            email: email.trim(),
+            password: password,
+        }),
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+        throw new Error(
+            data.message || "Login failed. Please check your credentials."
+        );
+    }
+
+    if (!data.token || !data.role) {
+        throw new Error("Invalid login response from server.");
+    }
+
+    return data;
+}

@@ -7,15 +7,20 @@
 /* Sidebar */
 
 .admin-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
     width: 250px;
-    min-height: calc(100vh - 140px);
+    box-sizing: border-box;
+    overflow-y: auto;
     background-color: #111827;
     color: #ffffff;
     display: flex;
     flex-direction: column;
-    position: sticky;
-    top: 70px;
+    z-index: 1001;
 }
+
 
 .admin-logo {
     padding: 25px 20px;
@@ -70,19 +75,27 @@
 .admin-main {
     flex: 1;
     min-width: 0;
+    margin-left: 250px;
 }
 
 /* Header */
 
 .admin-header {
+    position: fixed;
+    top: 0;
+    left: 250px;
+    right: 0;
     height: 75px;
+    box-sizing: border-box;
     padding: 0 30px;
     background-color: #ffffff;
     border-bottom: 1px solid #e5e7eb;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    z-index: 1000;
 }
+
 
 .admin-header h2 {
     margin: 0;
@@ -140,6 +153,7 @@
 
 .admin-content {
     padding: 30px;
+    padding-top: 105px;
 }
 
 .admin-welcome {

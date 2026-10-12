@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import LogoutButton from "../../components/auth/LogoutButton";
 
 function StudentSidebar() {
     return (
@@ -45,9 +46,7 @@ function StudentSidebar() {
             </nav>
 
             <div className="student-logout">
-                <button>
-                    Logout
-                </button>
+                <LogoutButton />
             </div>
 
         </aside>

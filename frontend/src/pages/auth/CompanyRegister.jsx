@@ -2,6 +2,8 @@ import { useState } from "react";
 
 import AuthLayout from "../../components/auth/AuthLayout";
 import FormInput from "../../components/auth/FormInput";
+import Navbar from "../../components/common/Navbar";
+import Footer from "../../components/common/Footer";
 
 import "../../components/auth/AuthForm.css";
 
@@ -39,103 +41,113 @@ function CompanyRegister() {
     };
 
     return (
-        <AuthLayout
-            title="Company Registration"
-            subtitle="Register your company with the placement platform"
-        >
 
-            <form onSubmit={handleSubmit}>
+        <>
 
-                <FormInput
-                    label="Company Name"
-                    name="companyName"
-                    value={formData.companyName}
-                    onChange={handleChange}
-                    placeholder="Enter company name"
-                />
 
-                <FormInput
-                    label="Email"
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    placeholder="Enter company email"
-                />
+            <Navbar />
 
-                <FormInput
-                    label="Phone"
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    placeholder="Enter company phone"
-                />
+            <AuthLayout
+                title="Company Registration"
+                subtitle="Register your company with the placement platform"
+            >
 
-                <FormInput
-                    label="Location"
-                    name="location"
-                    value={formData.location}
-                    onChange={handleChange}
-                    placeholder="Enter company location"
-                />
+                <form onSubmit={handleSubmit}>
 
-                <FormInput
-                    label="Domain"
-                    name="domain"
-                    value={formData.domain}
-                    onChange={handleChange}
-                    placeholder="Example: IT, Finance, Manufacturing"
-                />
+                    <FormInput
+                        label="Company Name"
+                        name="companyName"
+                        value={formData.companyName}
+                        onChange={handleChange}
+                        placeholder="Enter company name"
+                    />
 
-                <FormInput
-                    label="Head Office"
-                    name="headOffice"
-                    value={formData.headOffice}
-                    onChange={handleChange}
-                    placeholder="Enter head office"
-                />
+                    <FormInput
+                        label="Email"
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        placeholder="Enter company email"
+                    />
 
-                <FormInput
-                    label="Password"
-                    type="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    placeholder="Create password"
-                />
+                    <FormInput
+                        label="Phone"
+                        type="tel"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        placeholder="Enter company phone"
+                    />
 
-                <FormInput
-                    label="Confirm Password"
-                    type="password"
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    placeholder="Confirm password"
-                />
+                    <FormInput
+                        label="Location"
+                        name="location"
+                        value={formData.location}
+                        onChange={handleChange}
+                        placeholder="Enter company location"
+                    />
 
-                <button
-                    type="submit"
-                    className="auth-submit"
-                >
-                    Register Company
-                </button>
+                    <FormInput
+                        label="Domain"
+                        name="domain"
+                        value={formData.domain}
+                        onChange={handleChange}
+                        placeholder="Example: IT, Finance, Manufacturing"
+                    />
 
-            </form>
+                    <FormInput
+                        label="Head Office"
+                        name="headOffice"
+                        value={formData.headOffice}
+                        onChange={handleChange}
+                        placeholder="Enter head office"
+                    />
 
-            <div className="auth-link">
+                    <FormInput
+                        label="Password"
+                        type="password"
+                        name="password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        placeholder="Create password"
+                    />
 
-                Already registered?
+                    <FormInput
+                        label="Confirm Password"
+                        type="password"
+                        name="confirmPassword"
+                        value={formData.confirmPassword}
+                        onChange={handleChange}
+                        placeholder="Confirm password"
+                    />
 
-                <br />
+                    <button
+                        type="submit"
+                        className="auth-submit"
+                    >
+                        Register Company
+                    </button>
 
-                <a href="/login">
-                    Login
-                </a>
+                </form>
 
-            </div>
+                <div className="auth-link">
 
-        </AuthLayout>
+                    Already registered?
+
+                    <br />
+
+                    <a href="/login">
+                        Login
+                    </a>
+
+                </div>
+
+            </AuthLayout>
+
+            <Footer />
+
+        </>
     );
 }
 

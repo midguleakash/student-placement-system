@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 
 import AuthLayout from "../../components/auth/AuthLayout";
 import FormInput from "../../components/auth/FormInput";
@@ -6,28 +7,28 @@ import OtpVerification from "../../components/auth/OtpVerification";
 import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
 
+import { registerStudent } from "../../services/authApi";
+
 import "../../components/auth/AuthForm.css";
 
 function StudentRegister() {
+    const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
-        firstName: "",
-        lastName: "",
         email: "",
-        phone: "",
         password: "",
         confirmPassword: ""
     });
 
-
+    const [otpVerified, setOtpVerified] = useState(false);
+    const [message, setMessage] = useState("");
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
 
     const emailValid =
         /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
             formData.email.trim()
         );
-
-    const phoneValid =
-        /^[6-9]\d{9}$/.test(formData.phone.trim());
 
     const passwordValid =
         formData.password.length >= 8 &&
@@ -37,40 +38,18 @@ function StudentRegister() {
         formData.confirmPassword !== "" &&
         formData.password === formData.confirmPassword;
 
-    const isFormFilled =
-        formData.firstName.trim() !== "" &&
-        formData.lastName.trim() !== "" &&
+    const canSendOtp =
         emailValid &&
-        phoneValid &&
         passwordValid &&
         confirmPasswordValid;
 
-
-    const [otpVerified, setOtpVerified] = useState(false);
-
-    const [message, setMessage] = useState("");
-
-    const [error, setError] = useState("");
-
-    const [loading, setLoading] = useState(false);
-
-
-    // =====================================
-    // FORM CHANGE
-    // =====================================
-
     const handleChange = (event) => {
-
         const { name, value } = event.target;
 
-        setFormData({
-            ...formData,
+        setFormData((previous) => ({
+            ...previous,
             [name]: value
-        });
-
-
-        // If email changes,
-        // previous OTP verification is invalid.
+        }));
 
         if (name === "email") {
             setOtpVerified(false);
@@ -79,198 +58,80 @@ function StudentRegister() {
         }
     };
 
-
-    // =====================================
-    // OTP VERIFIED
-    // =====================================
-
     const handleOtpVerified = () => {
-
         setOtpVerified(true);
-
         setError("");
-
-        setMessage(
-            "Email verified successfully. You can now create your account."
-        );
+        setMessage("Student email verified successfully.");
     };
 
-
-    // =====================================
-    // FINAL REGISTRATION
-    // =====================================
-
     const handleSubmit = async (event) => {
-
         event.preventDefault();
 
         setMessage("");
         setError("");
 
-
-        // OTP must be verified
+        if (!canSendOtp) {
+            setError("Please enter valid registration details.");
+            return;
+        }
 
         if (!otpVerified) {
-
-            setError(
-                "Please verify your email before creating your account."
-            );
-
+            setError("Please verify your email using OTP.");
             return;
         }
-
-
-        // Password validation
-
-        if (
-            formData.password !==
-            formData.confirmPassword
-        ) {
-
-            setError(
-                "Passwords do not match."
-            );
-
-            return;
-        }
-
 
         setLoading(true);
 
-
         try {
+            const data = await registerStudent({
+                email: formData.email.trim().toLowerCase(),
+                password: formData.password
+            });
 
-            const response = await fetch(
-                "http://localhost:8080/api/auth/register/complete",
-                {
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-
-                    body: JSON.stringify({
-                        firstName:
-                            formData.firstName,
-
-                        lastName:
-                            formData.lastName,
-
-                        email:
-                            formData.email,
-
-                        phone:
-                            formData.phone,
-
-                        password:
-                            formData.password
-                    })
-                }
-            );
-
-
-            const data = await response.json();
-
-
-            // Handle backend errors
-            if (!response.ok) {
+            if (!data.token || data.role !== "STUDENT") {
                 throw new Error(
-                    data.message ||
-                    data.detail ||
-                    data.error ||
-                    "Registration failed. Please try again."
+                    "Invalid registration response. Expected a JWT and STUDENT role."
                 );
             }
 
+            sessionStorage.setItem("token", data.token);
+            sessionStorage.setItem("role", data.role);
 
+            if (data.userId != null) {
+                sessionStorage.setItem(
+                    "userId",
+                    String(data.userId)
+                );
+            }
 
-            // Display only the success message
-            setMessage(
-                data.message || "Student account created successfully."
-            );
-
-            setError("");
-
-
-            // Clear form
-
-            setFormData({
-                firstName: "",
-                lastName: "",
-                email: "",
-                phone: "",
-                password: "",
-                confirmPassword: ""
+            navigate("/student/dashboard", {
+                replace: true
             });
-
-
-            setOtpVerified(false);
-
-
-        } catch (error) {
-
+        } catch (err) {
             setError(
-                error.message ||
-                "Registration failed."
+                err.message || "Student registration failed."
             );
-
-            setMessage("");
-
         } finally {
-
             setLoading(false);
         }
     };
 
-
     return (
         <>
             <Navbar />
-            
+
             <AuthLayout
                 title="Student Registration"
                 subtitle="Create your student account"
             >
-
                 <form onSubmit={handleSubmit}>
-
-                    {/* ================================= */}
-                    {/* FIRST NAME */}
-                    {/* ================================= */}
-
-                    <FormInput
-                        label="First Name"
-                        name="firstName"
-                        value={formData.firstName}
-                        onChange={handleChange}
-                        placeholder="Enter first name"
-                    />
-
-
-                    {/* ================================= */}
-                    {/* LAST NAME */}
-                    {/* ================================= */}
-
-                    <FormInput
-                        label="Last Name"
-                        name="lastName"
-                        value={formData.lastName}
-                        onChange={handleChange}
-                        placeholder="Enter last name"
-                    />
-
-
-                    {/* ================================= */}
-                    {/* EMAIL */}
-                    {/* ================================= */}
-
                     <FormInput
                         label="Email"
                         type="email"
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
-                        placeholder="Enter email"
+                        placeholder="Enter your email"
                     />
 
                     {formData.email && !emailValid && (
@@ -278,33 +139,6 @@ function StudentRegister() {
                             Please enter a valid email address.
                         </p>
                     )}
-
-
-                    {/* ================================= */}
-                    {/* PHONE */}
-                    {/* ================================= */}
-
-                    <FormInput
-                        label="Phone"
-                        type="tel"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        placeholder="Enter phone number"
-                    />
-
-
-                    {formData.phone && !phoneValid && (
-                        <p className="field-error">
-                            Enter a valid 10-digit Indian mobile number.
-                        </p>
-                    )}
-
-
-
-                    {/* ================================= */}
-                    {/* PASSWORD */}
-                    {/* ================================= */}
 
                     <FormInput
                         label="Password"
@@ -315,18 +149,11 @@ function StudentRegister() {
                         placeholder="Create password"
                     />
 
-
                     {formData.password && !passwordValid && (
                         <p className="field-error">
                             Password must contain 8 to 72 characters.
                         </p>
                     )}
-
-
-
-                    {/* ================================= */}
-                    {/* CONFIRM PASSWORD */}
-                    {/* ================================= */}
 
                     <FormInput
                         label="Confirm Password"
@@ -337,95 +164,62 @@ function StudentRegister() {
                         placeholder="Confirm password"
                     />
 
-
-                    {formData.confirmPassword && !confirmPasswordValid && (
-                        <p className="field-error">
-                            Passwords do not match.
-                        </p>
-                    )}
-
-
-
-                    {/* ================================= */}
-                    {/* OTP COMPONENT */}
-                    {/* ================================= */}
+                    {formData.confirmPassword &&
+                        !confirmPasswordValid && (
+                            <p className="field-error">
+                                Passwords do not match.
+                            </p>
+                        )}
 
                     <OtpVerification
-                        email={formData.email}
+                        email={formData.email.trim().toLowerCase()}
                         registrationData={{
-                            firstName: formData.firstName,
-                            lastName: formData.lastName,
-                            email: formData.email,
-                            phone: formData.phone,
-                            password: formData.password
+                            email: formData.email.trim().toLowerCase()
                         }}
-                        canSendOtp={isFormFilled}
+                        canSendOtp={canSendOtp}
                         onVerified={handleOtpVerified}
                         onError={setError}
                         onMessage={setMessage}
                     />
 
-
-                    {/* ================================= */}
-                    {/* MESSAGE */}
-                    {/* ================================= */}
-
-
                     {message && (
-                        <div className="form-message success-message" role="status">
-                            <span aria-hidden="true">✓</span>
-                            <span>{message}</span>
+                        <div
+                            className="form-message success-message"
+                            role="status"
+                        >
+                            {message}
                         </div>
                     )}
 
                     {error && (
-                        <div className="form-message error-message" role="alert">
-                            <span aria-hidden="true">!</span>
-                            <span>{error}</span>
+                        <div
+                            className="form-message error-message"
+                            role="alert"
+                        >
+                            {error}
                         </div>
                     )}
-
-
-
-                    {/* ================================= */}
-                    {/* CREATE ACCOUNT */}
-                    {/* ================================= */}
 
                     <button
                         type="submit"
                         className="auth-submit"
                         disabled={
+                            !canSendOtp ||
                             !otpVerified ||
                             loading
                         }
                     >
-
                         {loading
                             ? "Creating Account..."
-                            : "Create Student Account"
-                        }
-
+                            : "Create Student Account"}
                     </button>
-
                 </form>
 
-
-                {/* ================================= */}
-                {/* LOGIN LINK */}
-                {/* ================================= */}
-
                 <div className="auth-link">
-
                     Already have an account?
-
                     <br />
-
-                    <a href="/login">
-                        Login
-                    </a>
-
+                    <Link to="/login">Login</Link>
                 </div>
-
             </AuthLayout>
 
             <Footer />

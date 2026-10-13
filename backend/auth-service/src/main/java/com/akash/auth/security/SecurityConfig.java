@@ -40,14 +40,19 @@ public class SecurityConfig {
                         )
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers(
+                                HttpMethod.OPTIONS, "/**"
+                        ).permitAll()
+
                         .requestMatchers(
                                 "/",
                                 "/api/auth/login",
                                 "/api/auth/register/send-otp",
                                 "/api/auth/register/verify-otp",
-                                "/api/auth/register/complete"
+                                "/api/auth/register/complete",
+                                "/api/auth/register/company/complete"
                         ).permitAll()
+
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(

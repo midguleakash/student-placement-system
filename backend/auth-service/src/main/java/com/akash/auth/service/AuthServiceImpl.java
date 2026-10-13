@@ -1,14 +1,15 @@
 package com.akash.auth.service;
 
-import ch.qos.logback.classic.encoder.JsonEncoder;
-import com.akash.auth.dto.AuthResponse;
+
 import com.akash.auth.dto.LoginRequest;
+import com.akash.auth.dto.LoginResponse;
 import com.akash.auth.dto.RegisterRequest;
 import com.akash.auth.model.User;
 import com.akash.auth.repository.UserRepository;
 import com.akash.auth.security.JwtService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Locale;
 
@@ -54,49 +55,93 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void registerStudent(RegisterRequest request) {
+    @Transactional
+    public LoginResponse registerCompany(RegisterRequest request) {
 
         String email = request.getEmail()
                 .trim()
-                .toLowerCase(java.util.Locale.ROOT);
+                .toLowerCase(Locale.ROOT);
 
-        // Prevent duplicate accounts.
         if (userRepository.existsByEmail(email)) {
             throw new IllegalArgumentException(
                     "An account with this email already exists."
             );
         }
 
-        // The backend checks its own OTP verification record.
-        // This method must consume verification only for this email.
+        // OTP verification must be confirmed by the backend.
         if (!otpService.consumeEmailVerification(email)) {
             throw new IllegalArgumentException(
-                    "Please verify this email before registering."
+                    "Please verify your email before registering."
             );
         }
 
         User user = new User();
-
-        user.setFirstName(request.getFirstName().trim());
-        user.setLastName(request.getLastName().trim());
         user.setEmail(email);
-        user.setPhone(request.getPhone().trim());
-
-        // Never store the plain-text password.
         user.setPassword(
                 passwordEncoder.encode(request.getPassword())
         );
 
-        // Do not accept the role from the frontend.
+        // The backend assigns the role.
+        user.setRole(User.Role.COMPANY);
+        user.setEmailVerified(true);
+
+        User savedUser = userRepository.save(user);
+
+        String token = jwtService.generateToken(savedUser);
+
+        return new LoginResponse(
+                token,
+                savedUser.getId(),
+                savedUser.getRole().name(),
+                "Company account created successfully."
+        );
+    }
+
+    @Override
+    @Transactional
+    public LoginResponse registerStudent(RegisterRequest request) {
+
+        String email = request.getEmail()
+                .trim()
+                .toLowerCase(Locale.ROOT);
+
+        if (userRepository.existsByEmail(email)) {
+            throw new IllegalArgumentException(
+                    "An account with this email already exists."
+            );
+        }
+
+        // Verify and consume the email verification on the backend.
+        if (!otpService.consumeEmailVerification(email)) {
+            throw new IllegalArgumentException(
+                    "Please verify your email before registering."
+            );
+        }
+
+        User user = new User();
+        user.setEmail(email);
+        user.setPassword(
+                passwordEncoder.encode(request.getPassword())
+        );
+
+        // Assign the role on the backend.
         user.setRole(User.Role.STUDENT);
         user.setEmailVerified(true);
 
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
+
+        String token = jwtService.generateToken(savedUser);
+
+        return new LoginResponse(
+                token,
+                savedUser.getId(),
+                savedUser.getRole().name(),
+                "Student account created successfully."
+        );
     }
 
-
     @Override
-    public AuthResponse login(LoginRequest request) {
+    public LoginResponse login(LoginRequest request) {
 
         String email = request.getEmail()
                 .trim()
@@ -126,10 +171,13 @@ public class AuthServiceImpl implements AuthService {
 
         String token = jwtService.generateToken(user);
 
-        return new AuthResponse(
+        return new LoginResponse(
                 token,
+                user.getId(),
                 user.getRole().name(),
                 "Login successful."
         );
     }
 }
+
+

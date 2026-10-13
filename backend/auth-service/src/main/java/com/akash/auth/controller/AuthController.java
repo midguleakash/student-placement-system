@@ -54,26 +54,36 @@ public class AuthController {
     }
 
     @PostMapping("/register/complete")
-    public ResponseEntity<ApiResponse> completeRegistration(
+    public ResponseEntity<LoginResponse> completeRegistration(
             @Valid @RequestBody RegisterRequest request) {
 
-        authService.registerStudent(request);
+        LoginResponse response =
+                authService.registerStudent(request);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(
-                new ApiResponse(
-                        "Student account created successfully.",
-                        "SUCCESS"
-                )
-        );
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
     }
 
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(
+    public ResponseEntity<LoginResponse> login(
             @Valid @RequestBody LoginRequest request) {
 
-        AuthResponse response = authService.login(request);
+        LoginResponse response = authService.login(request);
 
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/register/company/complete")
+    public ResponseEntity<LoginResponse> completeCompanyRegistration(
+            @Valid @RequestBody RegisterRequest request) {
+
+        LoginResponse response =
+                authService.registerCompany(request);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
     }
 }

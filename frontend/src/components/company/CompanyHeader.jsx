@@ -1,30 +1,46 @@
+
+import { useLocation } from "react-router-dom";
+import { useCompanyProfile } from "../../context/CompanyProfileContext";
+import StatusBadge from "./StatusBadge";
+
 function CompanyHeader() {
+    const location = useLocation();
+    const { profile } = useCompanyProfile();
+
+    const titles = {
+        "/company/dashboard": "Dashboard",
+        "/company/profile": "Company Profile",
+        "/company/jobs": "Job Openings",
+        "/company/applications": "Applicants",
+    };
+
     return (
         <header className="company-header">
-
             <div>
-                <h2>Company Dashboard</h2>
+                <span className="company-header-eyebrow">
+                    COMPANY WORKSPACE
+                </span>
+                <h2>{titles[location.pathname] || "Company Dashboard"}</h2>
             </div>
 
-            <div className="company-header-actions">
+            <div className="company-header-right">
+                <StatusBadge status={profile?.profileStatus} />
 
-                <button className="notification-btn">
-                    🔔
-                </button>
-
-                <div className="company-user">
-                    <div className="company-avatar">
-                        A
+                <div className="company-header-user">
+                    <div className="company-avatar small">
+                        {(profile?.companyName || "C")
+                            .charAt(0)
+                            .toUpperCase()}
                     </div>
 
                     <div>
-                        <strong>ABC Technologies</strong>
-                        <span>Company</span>
+                        <strong>
+                            {profile?.companyName || "Company Account"}
+                        </strong>
+                        <span>Recruiter</span>
                     </div>
                 </div>
-
             </div>
-
         </header>
     );
 }

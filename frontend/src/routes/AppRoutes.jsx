@@ -7,37 +7,31 @@ import Login from "../pages/auth/Login";
 import StudentRegister from "../pages/auth/StudentRegister";
 import CompanyRegister from "../pages/auth/CompanyRegister";
 
-// import Jobs from "../pages/jobs/Jobs";
-// import JobDetails from "../pages/jobs/JobDetails";
+import StudentLayout from "../layouts/StudentLayout";
+import CompanyLayout from "../layouts/CompanyLayout";
 
 import StudentDashboard from "../pages/student/StudentDashboard";
-// import Profile from "../pages/student/Profile";
-// import Applications from "../pages/student/Applications";
-// import Interviews from "../pages/student/Interviews";
+import StudentProfile from "../pages/student/StudentProfile";
+import StudentJobs from "../pages/student/StudentJobs";
+import StudentApplications from "../pages/student/StudentApplications";
 
 import CompanyDashboard from "../pages/company/CompanyDashboard";
+import CompanyProfile from "../pages/company/CompanyProfile";
+import CompanyJobs from "../pages/company/CompanyJobs";
+import CompanyApplications from "../pages/company/CompanyApplications";
 
 import AdminDashboard from "../pages/admin/AdminDashboard";
+
+
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 
 function AppRoutes() {
     return (
         <Routes>
-
-            {/* Public Pages */}
-
-
-            {/* Home is accessible only when logged out */}
+            {/* Public pages: guests only */}
             <Route element={<ProtectedRoute guestOnly />}>
-                <Route
-                    path="/"
-                    element={<Home />}
-                />
-
-                <Route
-                    path="/login"
-                    element={<Login />}
-                />
+                <Route path="/" element={<Home />} />
+                <Route path="/login" element={<Login />} />
 
                 <Route
                     path="/student/register"
@@ -50,64 +44,95 @@ function AppRoutes() {
                 />
             </Route>
 
-
-            {/* All routes below require login */}
-
+            {/* All authenticated pages */}
             <Route element={<ProtectedRoute />}>
-
-                {/* <Route
-                    path="/jobs"
-                    element={<Jobs />}
-                />
-
-                <Route
-                    path="/jobs/:id"
-                    element={<JobDetails />}
-                /> */}
-
-                {/* Student Pages */}
-
+                {/* Student pages */}
                 <Route
                     element={
                         <ProtectedRoute allowedRoles={["STUDENT"]} />
                     }
                 >
-                    <Route
-                        path="/student/dashboard"
-                        element={<StudentDashboard />}
-                    />
+                    <Route path="/student" element={<StudentLayout />}>
 
-                    {/* <Route
-                        path="/student/profile"
-                        element={<Profile />}
-                    />
+                        <Route
+                            index
+                            element={
+                                <StudentDashboard />
+                            }
+                        />
 
-                    <Route
-                        path="/student/applications"
-                        element={<Applications />}
-                    />
+                        <Route
+                            path="dashboard"
+                            element={<StudentDashboard />}
+                        />
 
-                    <Route
-                        path="/student/interviews"
-                        element={<Interviews />}
-                    /> */}
+                        <Route
+                            path="profile"
+                            element={<StudentProfile />}
+                        />
+
+                        <Route
+                            path="complete-profile"
+                            element={<StudentProfile />}
+                        />
+
+                        <Route
+                            path="jobs"
+                            element={<StudentJobs />}
+                        />
+
+                        <Route
+                            path="applications"
+                            element={<StudentApplications />}
+                        />
+                    </Route>
                 </Route>
 
-                {/* Company Pages */}
+                <Route element={<ProtectedRoute allowedRoles={["COMPANY"]} />}>
+                    <Route path="/company" element={<CompanyLayout />}>
 
-                <Route
-                    element={
-                        <ProtectedRoute allowedRoles={["COMPANY"]} />
-                    }
-                >
-                    <Route
-                        path="/company/dashboard"
-                        element={<CompanyDashboard />}
-                    />
+                        <Route
+                            index
+                            element={<CompanyDashboard />}
+                        />
+
+                        <Route
+                            path="dashboard"
+                            element={<CompanyDashboard />}
+                        />
+
+                        <Route
+                            path="profile"
+                            element={<CompanyProfile />}
+                        />
+
+                        {/* Incomplete or rejected company */}
+                        <Route
+                            path="complete-profile"
+                            element={<CompanyProfile />}
+                        />
+
+                        {/* Pending approval */}
+                        <Route
+                            path="profile-status"
+                            element={<CompanyDashboard />}
+                        />
+
+                        {/* Available after approval */}
+                        <Route
+                            path="jobs"
+                            element={<CompanyJobs />}
+                        />
+
+                        <Route
+                            path="applications"
+                            element={<CompanyApplications />}
+                        />
+
+                    </Route>
                 </Route>
 
-                {/* Admin Pages */}
-
+                {/* Admin pages */}
                 <Route
                     element={
                         <ProtectedRoute allowedRoles={["ADMIN"]} />
@@ -118,9 +143,7 @@ function AppRoutes() {
                         element={<AdminDashboard />}
                     />
                 </Route>
-
             </Route>
-
         </Routes>
     );
 }

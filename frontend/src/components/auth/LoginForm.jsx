@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import FormInput from "./FormInput";
 import FormSelect from "./FormSelect";
 import { loginUser } from "../../services/authApi";
+import { redirectAfterLogin } from "../../utils/redirectAfterLogin";
 
 function LoginForm() {
     const navigate = useNavigate();
@@ -61,15 +62,8 @@ function LoginForm() {
             sessionStorage.setItem("role", data.role);
 
             // Redirect according to the role returned by the backend
-            const dashboardPaths = {
-                STUDENT: "/student/dashboard",
-                COMPANY: "/company/dashboard",
-                ADMIN: "/admin/dashboard",
-            };
-
-            navigate(dashboardPaths[data.role] || "/login", {
-                replace: true,
-            });
+            await redirectAfterLogin(data.role, navigate);
+            
         } catch (err) {
             setError(err.message || "Unable to log in.");
         } finally {

@@ -104,7 +104,7 @@ function StudentRegister() {
                 );
             }
 
-            navigate("/student/dashboard", {
+            navigate("/student/complete-profile", {
                 replace: true
             });
         } catch (err) {

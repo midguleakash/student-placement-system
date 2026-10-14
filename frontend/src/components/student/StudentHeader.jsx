@@ -1,32 +1,37 @@
+
+import { useLocation } from "react-router-dom";
+import StatusBadge from "./StatusBadge";
+import { useStudentProfile } from "../../context/StudentProfileContext";
+
 function StudentHeader() {
+    const location = useLocation();
+    const { profile } = useStudentProfile();
+
+    const titles = {
+        "/student/dashboard": "Dashboard",
+        "/student/profile": "My Profile",
+        "/student/complete-profile": "Complete Profile",
+        "/student/jobs": "Job Openings",
+        "/student/applications": "My Applications",
+    };
+
+    const title = titles[location.pathname] || "Student Portal";
+
     return (
         <header className="student-header">
-
             <div>
-                <h2>Student Dashboard</h2>
+                <span className="header-eyebrow">STUDENT WORKSPACE</span>
+                <h2>{title}</h2>
             </div>
 
-            <div className="student-header-actions">
-
-                <button className="notification-btn">
-                    🔔
-                </button>
-
-                <div className="student-user">
-
-                    <div className="student-avatar">
-                        A
-                    </div>
-
-                    <div>
-                        <strong>Akash Midgule</strong>
-                        <span>Student</span>
-                    </div>
-
+            <div className="header-right">
+                <StatusBadge
+                    status={profile?.profileStatus || "INCOMPLETE"}
+                />
+                <div className="header-avatar">
+                    {(profile?.firstName?.[0] || "S").toUpperCase()}
                 </div>
-
             </div>
-
         </header>
     );
 }

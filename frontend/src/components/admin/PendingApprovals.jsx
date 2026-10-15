@@ -1,83 +1,24 @@
-import { Link } from "react-router-dom";
 
-function PendingApprovals() {
-
-    const approvals = [
-        {
-            type: "Student",
-            name: "Rahul Patil",
-            email: "rahul@example.com",
-            action: "Review"
-        },
-        {
-            type: "Student",
-            name: "Sneha More",
-            email: "sneha@example.com",
-            action: "Review"
-        },
-        {
-            type: "Company",
-            name: "ABC Technologies",
-            email: "hr@abc.com",
-            action: "Review"
-        }
-    ];
-
+export default function PendingApprovals() {
     return (
-        <section className="pending-approvals">
+        <section className="admin-panel">
+            <div className="admin-panel-header">
+                <div>
+                    <h2>Pending Approvals</h2>
+                    <p>Review student and company registrations.</p>
+                </div>
 
-            <div className="section-title">
-
-                <h3>Pending Approvals</h3>
-
-                <Link to="/admin/approvals">
-                    View All
-                </Link>
-
+                <span className="admin-count-badge">Pending</span>
             </div>
 
-            <div className="approval-list">
-
-                {approvals.map((approval) => (
-
-                    <div
-                        className="approval-item"
-                        key={`${approval.type}-${approval.email}`}
-                    >
-
-                        <div className="approval-info">
-
-                            <div className="approval-avatar">
-                                {approval.name.charAt(0)}
-                            </div>
-
-                            <div>
-
-                                <h4>{approval.name}</h4>
-
-                                <p>
-                                    {approval.type} · {approval.email}
-                                </p>
-
-                            </div>
-
-                        </div>
-
-                        <Link
-                            to="/admin/approvals"
-                            className="review-btn"
-                        >
-                            {approval.action}
-                        </Link>
-
-                    </div>
-
-                ))}
-
+            <div className="admin-empty-state">
+                <div>📋</div>
+                <strong>Approval data not connected</strong>
+                <p>
+                    Pending student and company records will appear here
+                    after API integration.
+                </p>
             </div>
-
         </section>
     );
 }
-
-export default PendingApprovals;

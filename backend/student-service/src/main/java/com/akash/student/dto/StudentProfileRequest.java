@@ -1,3 +1,4 @@
+
 package com.akash.student.dto;
 
 import jakarta.validation.constraints.*;
@@ -40,10 +41,6 @@ public class StudentProfileRequest {
     @NotBlank(message = "Skills are required")
     @Size(max = 2000)
     private String skills;
-
-    @NotBlank(message = "Resume URL is required")
-    @Size(max = 1000)
-    private String resumeUrl;
 
     public String getFirstName() {
         return firstName;
@@ -107,13 +104,5 @@ public class StudentProfileRequest {
 
     public void setSkills(String skills) {
         this.skills = skills;
-    }
-
-    public String getResumeUrl() {
-        return resumeUrl;
-    }
-
-    public void setResumeUrl(String resumeUrl) {
-        this.resumeUrl = resumeUrl;
     }
 }

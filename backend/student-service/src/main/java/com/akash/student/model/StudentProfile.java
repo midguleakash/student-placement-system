@@ -47,8 +47,8 @@ public class StudentProfile {
     @Column(length = 2000)
     private String skills;
 
-    @Column(name = "resume_url", length = 1000)
-    private String resumeUrl;
+    @Column(name = "resume_public_id", length = 500)
+    private String resumePublicId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "profile_status", nullable = false, length = 20)
@@ -151,12 +151,12 @@ public class StudentProfile {
         this.skills = skills;
     }
 
-    public String getResumeUrl() {
-        return resumeUrl;
+    public String getResumePublicId() {
+        return resumePublicId;
     }
 
-    public void setResumeUrl(String resumeUrl) {
-        this.resumeUrl = resumeUrl;
+    public void setResumePublicId(String resumePublicId) {
+        this.resumePublicId = resumePublicId;
     }
 
     public ProfileStatus getProfileStatus() {

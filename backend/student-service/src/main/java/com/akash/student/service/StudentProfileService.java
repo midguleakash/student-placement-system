@@ -2,6 +2,7 @@ package com.akash.student.service;
 
 import com.akash.student.dto.StudentProfileRequest;
 import com.akash.student.model.StudentProfile;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -24,4 +25,7 @@ public interface StudentProfileService {
             Long profileId,
             String remarks
     );
+
+    StudentProfile uploadResume(Long userId, MultipartFile file);
+    byte[] getMyResume(Long userId);
 }

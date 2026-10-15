@@ -1,44 +1,29 @@
-function AdminStats() {
 
-    const stats = [
-        {
-            title: "Total Students",
-            value: "120"
-        },
-        {
-            title: "Companies",
-            value: "25"
-        },
-        {
-            title: "Job Openings",
-            value: "18"
-        },
-        {
-            title: "Placements",
-            value: "42"
-        }
-    ];
+const stats = [
+    { label: "Total Students", value: "—", icon: "🎓", color: "blue" },
+    { label: "Companies", value: "—", icon: "🏢", color: "purple" },
+    { label: "Active Jobs", value: "—", icon: "💼", color: "green" },
+    { label: "Applications", value: "—", icon: "📄", color: "orange" },
+];
 
+export default function AdminStats() {
     return (
-        <div className="admin-stats">
-
+        <section className="admin-stats-grid">
             {stats.map((stat) => (
+                <article className="admin-stat-card" key={stat.label}>
+                    <div className="admin-stat-top">
+                        <span className={`admin-stat-icon ${stat.color}`}>
+                            {stat.icon}
+                        </span>
+                    </div>
 
-                <div
-                    className="admin-stat-card"
-                    key={stat.title}
-                >
-
-                    <p>{stat.title}</p>
-
+                    <p>{stat.label}</p>
                     <h2>{stat.value}</h2>
-
-                </div>
-
+                    <span className="admin-stat-footnote">
+                        Waiting for backend integration
+                    </span>
+                </article>
             ))}
-
-        </div>
+        </section>
     );
 }
-
-export default AdminStats;

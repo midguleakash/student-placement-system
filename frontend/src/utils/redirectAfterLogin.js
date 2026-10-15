@@ -6,7 +6,7 @@ export async function redirectAfterLogin(role, navigate) {
         try {
             const profile = await studentApi.getMyProfile();
 
-            switch (profile.profileStatus) {
+            switch (profile?.profileStatus) {
                 case "INCOMPLETE":
                 case "REJECTED":
                     navigate("/student/complete-profile", {
@@ -21,7 +21,7 @@ export async function redirectAfterLogin(role, navigate) {
                     return;
 
                 case "APPROVED":
-                    navigate("/student/placement-registration", {
+                    navigate("/student/dashboard", {
                         replace: true,
                     });
                     return;
@@ -40,7 +40,13 @@ export async function redirectAfterLogin(role, navigate) {
                 return;
             }
 
-            throw error;
+            console.error("Failed to fetch student profile:", error);
+
+            // Do not redirect to profile completion for every API error.
+            navigate("/student/dashboard", {
+                replace: true,
+            });
+            return;
         }
     }
 

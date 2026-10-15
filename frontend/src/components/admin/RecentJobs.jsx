@@ -1,85 +1,19 @@
-import { Link } from "react-router-dom";
 
-function RecentJobs() {
-
-    const jobs = [
-        {
-            position: "Java Developer",
-            company: "ABC Technologies",
-            location: "Pune",
-            openings: 10,
-            status: "Active"
-        },
-        {
-            position: "React Developer",
-            company: "XYZ Solutions",
-            location: "Mumbai",
-            openings: 8,
-            status: "Active"
-        },
-        {
-            position: "Backend Developer",
-            company: "Tech Solutions",
-            location: "Pune",
-            openings: 5,
-            status: "Closed"
-        }
-    ];
-
+export default function RecentJobs() {
     return (
-        <section className="dashboard-section">
-
-            <div className="section-title">
-
-                <h3>Recent Job Openings</h3>
-
-                <Link to="/admin/jobs">
-                    View All
-                </Link>
-
+        <section className="admin-panel">
+            <div className="admin-panel-header">
+                <div>
+                    <h2>Recent Job Openings</h2>
+                    <p>Latest jobs posted by companies.</p>
+                </div>
             </div>
 
-            <div className="admin-job-list">
-
-                {jobs.map((job) => (
-
-                    <div
-                        className="admin-job-item"
-                        key={`${job.company}-${job.position}`}
-                    >
-
-                        <div>
-
-                            <h4>{job.position}</h4>
-
-                            <p>
-                                {job.company} · {job.location}
-                            </p>
-
-                            <span>
-                                {job.openings} openings
-                            </span>
-
-                        </div>
-
-                        <span
-                            className={
-                                job.status === "Active"
-                                    ? "status active"
-                                    : "status closed"
-                            }
-                        >
-                            {job.status}
-                        </span>
-
-                    </div>
-
-                ))}
-
+            <div className="admin-empty-state">
+                <div>💼</div>
+                <strong>No job data loaded</strong>
+                <p>Job openings will appear here after API integration.</p>
             </div>
-
         </section>
     );
 }
-
-export default RecentJobs;

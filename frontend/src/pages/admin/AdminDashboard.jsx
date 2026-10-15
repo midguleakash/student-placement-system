@@ -1,50 +1,39 @@
-import AdminSidebar from "../../components/admin/AdminSidebar";
-import AdminHeader from "../../components/admin/AdminHeader";
+
 import AdminStats from "../../components/admin/AdminStats";
 import PendingApprovals from "../../components/admin/PendingApprovals";
 import RecentJobs from "../../components/admin/RecentJobs";
 import RecentApplications from "../../components/admin/RecentApplications";
 
-import "../../components/admin/AdminDashboard.css";
-
-function AdminDashboard() {
+export default function AdminDashboard() {
     return (
-        <div className="admin-dashboard">
-
-            <AdminSidebar />
-
-            <div className="admin-main">
-
-                <AdminHeader />
-
-                <div className="admin-content">
-
-                    <div className="admin-welcome">
-                        <h1>Welcome, Admin</h1>
-                        <p>
-                            Manage students, companies, jobs and the
-                            complete placement process.
-                        </p>
-                    </div>
-
-                    <AdminStats />
-
-                    <PendingApprovals />
-
-                    <div className="admin-dashboard-grid">
-
-                        <RecentJobs />
-
-                        <RecentApplications />
-
-                    </div>
-
+        <>
+            <section className="admin-welcome">
+                <div>
+                    <p className="admin-eyebrow">ADMINISTRATION</p>
+                    <h1>Welcome back, Admin 👋</h1>
+                    <p>
+                        Monitor students, companies, job openings and
+                        the complete placement process.
+                    </p>
                 </div>
 
-            </div>
+                <div className="admin-date">
+                    <span>📊</span>
+                    <div>
+                        <strong>Placement overview</strong>
+                        <small>Student Placement Management System</small>
+                    </div>
+                </div>
+            </section>
 
-        </div>
+            <AdminStats />
+
+            <PendingApprovals />
+
+            <div className="admin-bottom-grid">
+                <RecentJobs />
+                <RecentApplications />
+            </div>
+        </>
     );
 }
-
-export default AdminDashboard;

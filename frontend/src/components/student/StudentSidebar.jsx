@@ -58,9 +58,8 @@ function StudentSidebar() {
                         }
                     }}
                     className={({ isActive }) =>
-                        `sidebar-link ${isActive ? "active" : ""} ${
-                            !approved ? "locked" : ""
-                        }`
+                        `sidebar-link ${approved && isActive ? "active" : ""
+                        } ${!approved ? "locked" : ""}`
                     }
                     title={
                         approved
@@ -68,14 +67,13 @@ function StudentSidebar() {
                             : "Available after profile approval"
                     }
                 >
-                    <span>▤</span> Jobs
+                    <span>▤</span>
+                    Jobs
                     {!approved && <span className="lock-label">Locked</span>}
                 </NavLink>
 
                 <NavLink
-                    to={approved
-                        ? "/student/applications"
-                        : "/student/profile"}
+                    to={approved ? "/student/applications" : "/student/profile"}
                     onClick={(event) => {
                         if (!approved) {
                             event.preventDefault();
@@ -83,12 +81,17 @@ function StudentSidebar() {
                         }
                     }}
                     className={({ isActive }) =>
-                        `sidebar-link ${isActive ? "active" : ""} ${
-                            !approved ? "locked" : ""
-                        }`
+                        `sidebar-link ${approved && isActive ? "active" : ""
+                        } ${!approved ? "locked" : ""}`
+                    }
+                    title={
+                        approved
+                            ? "Track your applications"
+                            : "Available after profile approval"
                     }
                 >
-                    <span>↗</span> Applications
+                    <span>↗</span>
+                    Applications
                     {!approved && <span className="lock-label">Locked</span>}
                 </NavLink>
             </nav>

@@ -21,6 +21,7 @@ import CompanyJobs from "../pages/company/CompanyJobs";
 import CompanyApplications from "../pages/company/CompanyApplications";
 
 import AdminDashboard from "../pages/admin/AdminDashboard";
+import AdminLayout from "../layouts/AdminLayout";
 
 
 import ProtectedRoute from "../components/auth/ProtectedRoute";
@@ -47,29 +48,13 @@ function AppRoutes() {
             {/* All authenticated pages */}
             <Route element={<ProtectedRoute />}>
                 {/* Student pages */}
-                <Route
-                    element={
-                        <ProtectedRoute allowedRoles={["STUDENT"]} />
-                    }
-                >
+                <Route element={<ProtectedRoute allowedRoles={["STUDENT"]} />}>
                     <Route path="/student" element={<StudentLayout />}>
+                        <Route index element={<StudentDashboard />} />
 
-                        <Route
-                            index
-                            element={
-                                <StudentDashboard />
-                            }
-                        />
+                        <Route path="dashboard" element={<StudentDashboard />} />
 
-                        <Route
-                            path="dashboard"
-                            element={<StudentDashboard />}
-                        />
-
-                        <Route
-                            path="profile"
-                            element={<StudentProfile />}
-                        />
+                        <Route path="profile" element={<StudentProfile />} />
 
                         <Route
                             path="complete-profile"
@@ -77,9 +62,16 @@ function AppRoutes() {
                         />
 
                         <Route
-                            path="jobs"
-                            element={<StudentJobs />}
+                            path="profile-status"
+                            element={<StudentDashboard />}
                         />
+
+                        <Route
+                            path="placement-registration"
+                            element={<StudentDashboard />}
+                        />
+
+                        <Route path="jobs" element={<StudentJobs />} />
 
                         <Route
                             path="applications"
@@ -133,15 +125,21 @@ function AppRoutes() {
                 </Route>
 
                 {/* Admin pages */}
-                <Route
-                    element={
-                        <ProtectedRoute allowedRoles={["ADMIN"]} />
-                    }
-                >
-                    <Route
-                        path="/admin/dashboard"
-                        element={<AdminDashboard />}
-                    />
+                <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
+                    <Route path="/admin" element={<AdminLayout />}>
+                        <Route index element={<AdminDashboard />} />
+
+                        <Route
+                            path="dashboard"
+                            element={<AdminDashboard />}
+                        />
+
+                        {/* Add these pages as you implement them */}
+                        {/* <Route path="students" element={<AdminStudents />} /> */}
+                        {/* <Route path="companies" element={<AdminCompanies />} /> */}
+                        {/* <Route path="jobs" element={<AdminJobs />} /> */}
+                        {/* <Route path="applications" element={<AdminApplications />} /> */}
+                    </Route>
                 </Route>
             </Route>
         </Routes>

@@ -47,8 +47,13 @@ function StudentDashboard() {
                             : " to your portal"}
                     </h1>
                     <p>
-                        Complete your student profile to move forward
-                        with placement opportunities.
+                        {pending
+                            ? "Your profile is submitted and awaiting admin approval. Placement opportunities will unlock once approved."
+                            : rejected
+                                ? "Your profile needs changes. Review the admin remarks and update your details."
+                                : approved
+                                    ? "Your profile is approved. Explore job openings and manage your placement applications."
+                                    : "Complete your student profile and submit it for admin approval to access placement opportunities."}
                     </p>
                 </div>
 

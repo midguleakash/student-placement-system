@@ -7,9 +7,13 @@ import com.akash.student.service.StudentProfileService;
 
 import jakarta.validation.Valid;
 
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/student/profile")
@@ -54,5 +58,37 @@ public class StudentProfileController {
 
         return ResponseEntity.ok(
                 StudentProfileResponse.from(profile));
+    }
+
+
+    @PostMapping(
+            value = "/resume",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<StudentProfileResponse> uploadResume(
+            @RequestAttribute("userId") Long userId,
+            @RequestParam("file") MultipartFile file) {
+
+        StudentProfile profile = service.uploadResume(userId, file);
+
+        return ResponseEntity.ok(
+                StudentProfileResponse.from(profile));
+    }
+
+
+    @GetMapping(value = "/resume/view", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> viewMyResume(
+            @RequestAttribute("userId") Long userId) {
+
+        byte[] pdf = service.getMyResume(userId);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        "inline; filename=\"resume.pdf\""
+                )
+                .cacheControl(CacheControl.noStore())
+                .body(pdf);
     }
 }

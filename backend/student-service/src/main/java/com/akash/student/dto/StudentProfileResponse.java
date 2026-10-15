@@ -16,13 +16,12 @@ public record StudentProfileResponse(
         Double cgpa,
         Integer activeBacklogs,
         String skills,
-        String resumeUrl,
+        boolean hasResume,
         ProfileStatus profileStatus,
         String rejectionRemarks,
         LocalDateTime profileSubmittedAt,
         LocalDateTime profileReviewedAt
 ) {
-
     public static StudentProfileResponse from(StudentProfile profile) {
         return new StudentProfileResponse(
                 profile.getId(),
@@ -35,7 +34,8 @@ public record StudentProfileResponse(
                 profile.getCgpa(),
                 profile.getActiveBacklogs(),
                 profile.getSkills(),
-                profile.getResumeUrl(),
+                profile.getResumePublicId() != null
+                        && !profile.getResumePublicId().isBlank(),
                 profile.getProfileStatus(),
                 profile.getRejectionRemarks(),
                 profile.getProfileSubmittedAt(),

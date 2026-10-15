@@ -5,19 +5,32 @@ import com.akash.student.enums.ProfileStatus;
 import com.akash.student.model.StudentProfile;
 import com.akash.student.repository.StudentProfileRepository;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class StudentProfileServiceImpl implements StudentProfileService {
 
     private final StudentProfileRepository repository;
+    private final Cloudinary cloudinary;
 
-    public StudentProfileServiceImpl(StudentProfileRepository repository) {
+    public StudentProfileServiceImpl(
+            StudentProfileRepository repository,
+            Cloudinary cloudinary) {
         this.repository = repository;
+        this.cloudinary = cloudinary;
     }
 
     @Override
@@ -46,7 +59,7 @@ public class StudentProfileServiceImpl implements StudentProfileService {
         profile.setCgpa(request.getCgpa());
         profile.setActiveBacklogs(request.getActiveBacklogs());
         profile.setSkills(request.getSkills().trim());
-        profile.setResumeUrl(request.getResumeUrl().trim());
+
 
         profile.setProfileStatus(ProfileStatus.INCOMPLETE);
         profile.setRejectionRemarks(null);
@@ -133,6 +146,133 @@ public class StudentProfileServiceImpl implements StudentProfileService {
         return repository.save(profile);
     }
 
+    @Override
+    @Transactional
+    public StudentProfile uploadResume(Long userId, MultipartFile file) {
+
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("Please select a PDF resume.");
+        }
+
+        if (file.getSize() > 5 * 1024 * 1024) {
+            throw new IllegalArgumentException(
+                    "Resume size must not exceed 5 MB.");
+        }
+
+        String filename = file.getOriginalFilename();
+
+        if (filename == null
+                || !filename.toLowerCase().endsWith(".pdf")
+                || !"application/pdf".equalsIgnoreCase(file.getContentType())) {
+            throw new IllegalArgumentException(
+                    "Only PDF resumes are allowed.");
+        }
+
+        StudentProfile profile = repository.findByUserId(userId)
+                .orElseGet(() -> {
+                    StudentProfile newProfile = new StudentProfile();
+                    newProfile.setUserId(userId);
+                    newProfile.setProfileStatus(ProfileStatus.INCOMPLETE);
+                    return repository.save(newProfile);
+                });
+
+        if (profile.getProfileStatus() == ProfileStatus.PENDING
+                || profile.getProfileStatus() == ProfileStatus.APPROVED) {
+            throw new IllegalStateException(
+                    "Resume cannot be changed while the profile is pending or approved.");
+        }
+
+        try {
+            Map<?, ?> result = cloudinary.uploader().upload(
+                    file.getBytes(),
+                    ObjectUtils.asMap(
+                            "resource_type", "raw",
+                            "type", "authenticated",
+                            "folder", "student-placement/resumes",
+                            "public_id", "student_" + userId
+                                    + "_resume_" + System.currentTimeMillis() + ".pdf"
+                    )
+            );
+
+            String publicId = (String) result.get("public_id");
+
+            if (publicId == null || publicId.isBlank()) {
+                throw new IllegalStateException(
+                        "Cloudinary did not return a resume identifier.");
+            }
+
+            profile.setResumePublicId(publicId);
+            return repository.save(profile);
+
+        } catch (IOException e) {
+            throw new IllegalStateException(
+                    "Unable to read the uploaded resume.", e);
+        } catch (Exception e) {
+            throw new IllegalStateException(
+                    "Resume upload failed. Please try again.", e);
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public byte[] getMyResume(Long userId) {
+        StudentProfile profile = repository.findByUserId(userId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Student profile not found."));
+
+        String publicId = profile.getResumePublicId();
+
+        if (publicId == null || publicId.isBlank()) {
+            throw new IllegalArgumentException("No resume has been uploaded.");
+        }
+
+        try {
+            String signedUrl = cloudinary.url()
+                    .resourceType("raw")
+                    .type("authenticated")
+                    .signed(true)
+                    .generate(publicId);
+
+            HttpClient client = HttpClient.newHttpClient();
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(signedUrl))
+                    .GET()
+                    .build();
+
+            HttpResponse<byte[]> response = client.send(
+                    request,
+                    HttpResponse.BodyHandlers.ofByteArray()
+            );
+
+            if (response.statusCode() != 200) {
+                throw new IllegalStateException(
+                        "Unable to retrieve the private resume from Cloudinary.");
+            }
+
+            String contentType = response.headers()
+                    .firstValue("Content-Type")
+                    .orElse("");
+
+            if (!contentType.equalsIgnoreCase("application/pdf")) {
+                throw new IllegalStateException(
+                        "Cloudinary did not return a PDF file.");
+            }
+
+            if (response.body().length > 5 * 1024 * 1024) {
+                throw new IllegalStateException("Resume exceeds the 5 MB limit.");
+            }
+
+            return response.body();
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Resume retrieval was interrupted.", e);
+        } catch (java.io.IOException e) {
+            throw new IllegalStateException("Unable to retrieve the resume.", e);
+        }
+    }
+
     private StudentProfile getPendingProfile(Long profileId) {
 
         StudentProfile profile = repository.findById(profileId)
@@ -157,7 +297,7 @@ public class StudentProfileServiceImpl implements StudentProfileService {
                 || profile.getCgpa() == null
                 || profile.getActiveBacklogs() == null
                 || isBlank(profile.getSkills())
-                || isBlank(profile.getResumeUrl())) {
+                || isBlank(profile.getResumePublicId())) {
 
             throw new IllegalArgumentException(
                     "Complete all required fields before submission.");
@@ -178,3 +318,6 @@ public class StudentProfileServiceImpl implements StudentProfileService {
         return value == null || value.isBlank();
     }
 }
+
+
+

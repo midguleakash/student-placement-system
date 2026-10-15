@@ -691,3 +691,38 @@ textarea {
         width: 100%;
     }
 }
+
+
+.resume-upload-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.resume-upload-section > label {
+    color: #374258;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.resume-upload-section input[type="file"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px dashed #b8c7e0;
+    border-radius: 9px;
+    background: #fff;
+}
+
+.resume-file-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid #dce6ff;
+    border-radius: 9px;
+    background: #f5f8ff;
+    font-size: 13px;
+}
+

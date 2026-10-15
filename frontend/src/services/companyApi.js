@@ -1,4 +1,6 @@
 
+import { logout } from "../utils/auth";
+
 const API_BASE_URL =
     import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
 
@@ -15,6 +17,12 @@ async function request(path, options = {}) {
             ...options.headers,
         },
     });
+
+    // Handle expired or invalid token
+    if (response.status === 401) {
+        logout();
+        throw new Error("Session expired. Please log in again.");
+    }
 
     if (response.status === 204) return null;
 

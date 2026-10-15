@@ -1,66 +1,55 @@
-import { Link } from "react-router-dom";
-import LogoutButton from "../../components/auth/LogoutButton";
 
-function AdminSidebar() {
+import { NavLink } from "react-router-dom";
+import { logout } from "../../utils/auth";
+
+const links = [
+    { label: "Overview", path: "/admin", icon: "▦", end: true },
+    { label: "Students", path: "/admin/students", icon: "♙" },
+    { label: "Companies", path: "/admin/companies", icon: "▤" },
+    { label: "Job Openings", path: "/admin/jobs", icon: "▣" },
+    { label: "Applications", path: "/admin/applications", icon: "☷" },
+];
+
+export default function AdminSidebar({ open, onNavigate }) {
     return (
-        <aside className="admin-sidebar">
-
-            <div className="admin-logo">
-                Student<span>Placement</span>
+        <aside className={`admin-sidebar ${open ? "open" : ""}`}>
+            <div className="admin-brand">
+                <div className="admin-brand-icon">P</div>
+                <div>
+                    <h2>PlaceTrack</h2>
+                    <span>Placement Management</span>
+                </div>
             </div>
 
-            <nav className="admin-menu">
+            <p className="admin-menu-label">ADMIN WORKSPACE</p>
 
-                <Link to="/admin/dashboard">
-                    Dashboard
-                </Link>
-
-                <Link to="/admin/students">
-                    Students
-                </Link>
-
-                <Link to="/admin/companies">
-                    Companies
-                </Link>
-
-                <Link to="/admin/jobs">
-                    Job Openings
-                </Link>
-
-                <Link to="/admin/applications">
-                    Applications
-                </Link>
-
-                <Link to="/admin/interviews">
-                    Interviews
-                </Link>
-
-                <Link to="/admin/placements">
-                    Placements
-                </Link>
-
-                <Link to="/admin/approvals">
-                    Approvals
-                </Link>
-
-                <Link to="/admin/reports">
-                    Reports
-                </Link>
-
-                <Link to="/admin/settings">
-                    Settings
-                </Link>
-
+            <nav className="admin-nav">
+                {links.map((link) => (
+                    <NavLink
+                        key={link.path}
+                        to={link.path}
+                        end={link.end}
+                        onClick={onNavigate}
+                        className={({ isActive }) =>
+                            `admin-nav-item ${isActive ? "active" : ""}`
+                        }
+                    >
+                        <span className="admin-nav-icon">{link.icon}</span>
+                        <span>{link.label}</span>
+                    </NavLink>
+                ))}
             </nav>
 
-            <div className="admin-logout">
+            <div className="admin-sidebar-bottom">
+                <div className="admin-help-card">
+                    <strong>Placement Administration</strong>
+                    <p>Manage student and company placement activities.</p>
+                </div>
 
-                <LogoutButton />
-
+                <button className="admin-logout" onClick={logout}>
+                    <span>↪</span> Logout
+                </button>
             </div>
-
         </aside>
     );
 }
-
-export default AdminSidebar;

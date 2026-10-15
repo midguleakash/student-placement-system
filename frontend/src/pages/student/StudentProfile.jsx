@@ -15,7 +15,7 @@ const emptyForm = {
     cgpa: "",
     activeBacklogs: "0",
     skills: "",
-    resumeUrl: "",
+    hasResume: false,
 };
 
 function StudentProfile() {
@@ -26,6 +26,7 @@ function StudentProfile() {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
+    const [uploadingResume, setUploadingResume] = useState(false);
 
     useEffect(() => {
         if (!profile) return;
@@ -39,7 +40,7 @@ function StudentProfile() {
             cgpa: profile.cgpa ?? "",
             activeBacklogs: profile.activeBacklogs ?? "0",
             skills: profile.skills ?? "",
-            resumeUrl: profile.resumeUrl ?? "",
+            hasResume: profile.hasResume ?? false,
         });
     }, [profile]);
 
@@ -56,20 +57,46 @@ function StudentProfile() {
         }));
     }
 
+    function validateGraduationYear() {
+        const year = Number(form.graduationYear);
+
+        if (
+            !form.graduationYear ||
+            !Number.isInteger(year) ||
+            year < 2020 ||
+            year > 2100
+        ) {
+            setError("Graduation year must be between 2020 and 2100.");
+            setMessage("");
+            return false;
+        }
+
+        return true;
+    }
+
+    function getProfilePayload() {
+        const { hasResume, ...profileData } = form;
+
+        return {
+            ...profileData,
+            graduationYear: Number(form.graduationYear),
+            cgpa: Number(form.cgpa),
+            activeBacklogs: Number(form.activeBacklogs),
+        };
+    }
+
+
     async function saveProfile(event) {
         event.preventDefault();
+
+        if (!validateGraduationYear()) return;
+
         setSaving(true);
         setError("");
         setMessage("");
 
         try {
-            const saved = await studentApi.saveProfile({
-                ...form,
-                graduationYear: Number(form.graduationYear),
-                cgpa: Number(form.cgpa),
-                activeBacklogs: Number(form.activeBacklogs),
-            });
-
+            const saved = await studentApi.saveProfile(getProfilePayload());
             setProfile(saved);
             setMessage("Your profile has been saved.");
             await refreshProfile();
@@ -81,17 +108,14 @@ function StudentProfile() {
     }
 
     async function submitProfile() {
+        if (!validateGraduationYear()) return;
+
         setSaving(true);
         setError("");
         setMessage("");
 
         try {
-            const saved = await studentApi.saveProfile({
-                ...form,
-                graduationYear: Number(form.graduationYear),
-                cgpa: Number(form.cgpa),
-                activeBacklogs: Number(form.activeBacklogs),
-            });
+            const saved = await studentApi.saveProfile(getProfilePayload());
 
             setProfile(saved);
 
@@ -106,6 +130,83 @@ function StudentProfile() {
             setSaving(false);
         }
     }
+
+
+    async function handleResumeUpload(event) {
+        const file = event.target.files?.[0];
+
+        if (!file) return;
+
+        // Allow the same file to be selected again after an error.
+        event.target.value = "";
+
+        setError("");
+        setMessage("");
+
+        if (
+            file.type !== "application/pdf" ||
+            !file.name.toLowerCase().endsWith(".pdf")
+        ) {
+            setError("Please select a PDF file.");
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            setError("Resume size must not exceed 5 MB.");
+            return;
+        }
+
+        setUploadingResume(true);
+
+        try {
+            const updated = await studentApi.uploadResume(file);
+
+            setProfile(updated);
+
+            setForm(previous => ({
+                ...previous,
+                hasResume: updated.hasResume ?? false,
+            }));
+
+            setMessage("Resume uploaded successfully.");
+
+            await refreshProfile();
+        } catch (err) {
+            setError(err.message || "Unable to upload resume.");
+        } finally {
+            setUploadingResume(false);
+        }
+    }
+
+    async function handleViewResume() {
+        const previewWindow = window.open("", "_blank");
+
+        if (!previewWindow) {
+            setError("Please allow pop-ups to view your resume.");
+            return;
+        }
+
+        previewWindow.document.title = "Loading resume...";
+        setError("");
+
+        try {
+            const blob = await studentApi.getMyResume();
+
+            if (blob.type !== "application/pdf") {
+                throw new Error("The server did not return a PDF.");
+            }
+
+            const pdfUrl = URL.createObjectURL(blob);
+            previewWindow.location.href = pdfUrl;
+
+            // Keep the Blob URL alive while the PDF viewer loads.
+            window.setTimeout(() => URL.revokeObjectURL(pdfUrl), 60_000);
+        } catch (err) {
+            previewWindow.close();
+            setError(err.message || "Unable to open your resume.");
+        }
+    }
+
 
     if (loading) {
         return <div className="page-loading">Loading profile...</div>;
@@ -193,7 +294,7 @@ function StudentProfile() {
                             value={form.phone}
                             onChange={handleChange}
                             required
-                            maxLength={20}
+                            maxLength={10}
                             disabled={locked}
                         />
                     </label>
@@ -218,19 +319,40 @@ function StudentProfile() {
                 </div>
 
                 <div className="form-grid">
+
                     <label>
                         Graduation year *
+
                         <input
                             name="graduationYear"
                             type="number"
-                            min="2000"
+                            min="2020"
                             max="2100"
                             value={form.graduationYear}
                             onChange={handleChange}
                             required
                             disabled={locked}
+                            onInvalid={(event) => {
+                                const input = event.currentTarget;
+
+                                if (input.validity.rangeUnderflow) {
+                                    input.setCustomValidity(
+                                        "Graduation year must be 2020 or later."
+                                    );
+                                } else if (input.validity.rangeOverflow) {
+                                    input.setCustomValidity(
+                                        "Graduation year cannot be later than 2100."
+                                    );
+                                } else {
+                                    input.setCustomValidity("");
+                                }
+                            }}
+                            onInput={(event) => {
+                                event.currentTarget.setCustomValidity("");
+                            }}
                         />
                     </label>
+
 
                     <label>
                         CGPA *
@@ -280,26 +402,56 @@ function StudentProfile() {
                     />
                 </label>
 
-                <label>
-                    Resume URL *
-                    <input
-                        name="resumeUrl"
-                        type="url"
-                        value={form.resumeUrl}
-                        onChange={handleChange}
-                        placeholder="https://example.com/resume.pdf"
-                        maxLength={1000}
-                        required
-                        disabled={locked}
-                    />
-                </label>
+                <div className="resume-upload-section">
+                    <label htmlFor="resumeFile">
+                        Upload Resume (PDF, maximum 5 MB) *
+                    </label>
+
+                    {!locked && (
+                        <input
+                            id="resumeFile"
+                            type="file"
+                            accept=".pdf,application/pdf"
+                            onChange={handleResumeUpload}
+                            disabled={uploadingResume || saving}
+                            required={!form.hasResume}
+                        />
+                    )}
+
+                    {uploadingResume && (
+                        <p className="stat-footnote">
+                            Uploading resume...
+                        </p>
+                    )}
+
+                    {form.hasResume && (
+                        <div className="resume-file-info">
+                            <span>PDF resume uploaded</span>
+
+                            <button
+                                type="button"
+                                className="text-link"
+                                onClick={handleViewResume}
+                            >
+                                View Resume ↗
+                            </button>
+                        </div>
+                    )}
+
+                    {!form.hasResume && !locked && !uploadingResume && (
+                        <p className="stat-footnote">
+                            Select a PDF file to upload your resume.
+                        </p>
+                    )}
+                </div>
+
 
                 {!locked && (
                     <div className="form-actions">
                         <button
                             className="button button-secondary"
                             type="submit"
-                            disabled={saving}
+                            disabled={saving || uploadingResume}
                         >
                             {saving ? "Saving..." : "Save progress"}
                         </button>
@@ -307,7 +459,7 @@ function StudentProfile() {
                         <button
                             className="button button-primary"
                             type="button"
-                            disabled={saving}
+                            disabled={saving || uploadingResume}
                             onClick={submitProfile}
                         >
                             {saving ? "Processing..." : "Submit for approval"}

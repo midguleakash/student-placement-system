@@ -1,86 +1,22 @@
-import { Link } from "react-router-dom";
 
-function RecentApplications() {
-
-    const applications = [
-        {
-            student: "Akash Midgule",
-            position: "Java Developer",
-            company: "ABC Technologies",
-            status: "Shortlisted"
-        },
-        {
-            student: "Rahul Patil",
-            position: "React Developer",
-            company: "XYZ Solutions",
-            status: "Reviewing"
-        },
-        {
-            student: "Sneha More",
-            position: "Backend Developer",
-            company: "Tech Solutions",
-            status: "Selected"
-        }
-    ];
-
+export default function RecentApplications() {
     return (
-        <section className="dashboard-section">
-
-            <div className="section-title">
-
-                <h3>Recent Applications</h3>
-
-                <Link to="/admin/applications">
-                    View All
-                </Link>
-
+        <section className="admin-panel">
+            <div className="admin-panel-header">
+                <div>
+                    <h2>Recent Applications</h2>
+                    <p>Latest student application activity.</p>
+                </div>
             </div>
 
-            <div className="admin-application-list">
-
-                {applications.map((application) => (
-
-                    <div
-                        className="admin-application-item"
-                        key={`${application.student}-${application.position}`}
-                    >
-
-                        <div className="admin-application-info">
-
-                            <div className="student-avatar">
-                                {application.student.charAt(0)}
-                            </div>
-
-                            <div>
-
-                                <h4>
-                                    {application.student}
-                                </h4>
-
-                                <p>
-                                    {application.position}
-                                </p>
-
-                                <span>
-                                    {application.company}
-                                </span>
-
-                            </div>
-
-                        </div>
-
-                        <span className="application-status">
-                            {application.status}
-                        </span>
-
-                    </div>
-
-                ))}
-
+            <div className="admin-empty-state">
+                <div>📄</div>
+                <strong>No application data loaded</strong>
+                <p>
+                    Application statuses will appear here after
+                    API integration.
+                </p>
             </div>
-
         </section>
     );
 }
-
-export default RecentApplications;

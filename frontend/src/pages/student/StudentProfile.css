@@ -726,3 +726,30 @@ textarea {
     font-size: 13px;
 }
 
+.placement-policy-checkbox {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    width: fit-content;
+    margin: 18px 0;
+    cursor: pointer;
+    line-height: 1.5;
+}
+
+.placement-policy-checkbox input[type="checkbox"] {
+    appearance: auto;
+    -webkit-appearance: checkbox;
+    flex: 0 0 18px;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+    accent-color: #2855d9;
+}
+
+.placement-policy-checkbox span {
+    margin: 0;
+}
+

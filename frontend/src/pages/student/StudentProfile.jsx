@@ -250,8 +250,8 @@ function StudentProfile() {
 
             {status === "APPROVED" && (
                 <div className="notice notice-success">
-                    Your profile is approved. Your placement options are
-                    now available, subject to job eligibility.
+                    Your student profile is approved. Register for placements separately
+                    and wait for admin approval to unlock jobs and applications.
                 </div>
             )}
 

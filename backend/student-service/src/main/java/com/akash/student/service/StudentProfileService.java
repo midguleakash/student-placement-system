@@ -28,4 +28,16 @@ public interface StudentProfileService {
 
     StudentProfile uploadResume(Long userId, MultipartFile file);
     byte[] getMyResume(Long userId);
+
+    byte[] getStudentResume(Long profileId);
+
+    StudentProfile registerForPlacement(Long userId);
+
+    StudentProfile approvePlacementRegistration(
+            Long profileId, Long adminUserId);
+
+    StudentProfile rejectPlacementRegistration(
+            Long profileId, Long adminUserId, String remarks);
+
+    java.util.List<StudentProfile> getPendingPlacementRegistrations();
 }

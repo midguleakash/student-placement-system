@@ -1,5 +1,6 @@
 package com.akash.student.model;
 
+import com.akash.student.enums.PlacementRegistrationStatus;
 import com.akash.student.enums.ProfileStatus;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -65,6 +66,26 @@ public class StudentProfile {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "placement_registration_status",
+            nullable = false, length = 20)
+    private PlacementRegistrationStatus placementRegistrationStatus =
+            PlacementRegistrationStatus.NOT_REGISTERED;
+
+    @Column(name = "placement_registered_at")
+    private LocalDateTime placementRegisteredAt;
+
+    @Column(name = "placement_reviewed_at")
+    private LocalDateTime placementReviewedAt;
+
+    @Column(name = "placement_reviewed_by")
+    private Long placementReviewedBy;
+
+    @Column(name = "placement_rejection_remarks", length = 1000)
+    private String placementRejectionRemarks;
+
 
     @PrePersist
     protected void onCreate() {
@@ -194,4 +215,47 @@ public class StudentProfile {
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
+
+
+    public PlacementRegistrationStatus getPlacementRegistrationStatus() {
+        return placementRegistrationStatus;
+    }
+
+    public void setPlacementRegistrationStatus(
+            PlacementRegistrationStatus placementRegistrationStatus) {
+        this.placementRegistrationStatus = placementRegistrationStatus;
+    }
+
+    public LocalDateTime getPlacementRegisteredAt() {
+        return placementRegisteredAt;
+    }
+
+    public void setPlacementRegisteredAt(LocalDateTime placementRegisteredAt) {
+        this.placementRegisteredAt = placementRegisteredAt;
+    }
+
+    public LocalDateTime getPlacementReviewedAt() {
+        return placementReviewedAt;
+    }
+
+    public void setPlacementReviewedAt(LocalDateTime placementReviewedAt) {
+        this.placementReviewedAt = placementReviewedAt;
+    }
+
+    public Long getPlacementReviewedBy() {
+        return placementReviewedBy;
+    }
+
+    public void setPlacementReviewedBy(Long placementReviewedBy) {
+        this.placementReviewedBy = placementReviewedBy;
+    }
+
+    public String getPlacementRejectionRemarks() {
+        return placementRejectionRemarks;
+    }
+
+    public void setPlacementRejectionRemarks(String placementRejectionRemarks) {
+        this.placementRejectionRemarks = placementRejectionRemarks;
+    }
+
 }

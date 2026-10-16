@@ -1,5 +1,6 @@
 package com.akash.student.dto;
 
+import com.akash.student.enums.PlacementRegistrationStatus;
 import com.akash.student.enums.ProfileStatus;
 import com.akash.student.model.StudentProfile;
 
@@ -20,7 +21,11 @@ public record StudentProfileResponse(
         ProfileStatus profileStatus,
         String rejectionRemarks,
         LocalDateTime profileSubmittedAt,
-        LocalDateTime profileReviewedAt
+        LocalDateTime profileReviewedAt,
+        PlacementRegistrationStatus placementRegistrationStatus,
+        LocalDateTime placementRegisteredAt,
+        LocalDateTime placementReviewedAt,
+        String placementRejectionRemarks
 ) {
     public static StudentProfileResponse from(StudentProfile profile) {
         return new StudentProfileResponse(
@@ -39,7 +44,11 @@ public record StudentProfileResponse(
                 profile.getProfileStatus(),
                 profile.getRejectionRemarks(),
                 profile.getProfileSubmittedAt(),
-                profile.getProfileReviewedAt()
+                profile.getProfileReviewedAt(),
+                profile.getPlacementRegistrationStatus(),
+                profile.getPlacementRegisteredAt(),
+                profile.getPlacementReviewedAt(),
+                profile.getPlacementRejectionRemarks()
         );
     }
 }

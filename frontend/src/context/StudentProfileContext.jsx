@@ -29,6 +29,14 @@ export function StudentProfileProvider({ children }) {
         }
     }, []);
 
+
+    const refreshPlacementRegistration = useCallback(async () => {
+        const data = await studentApi.getPlacementRegistration();
+        setProfile(data);
+        return data;
+    }, []);
+
+
     useEffect(() => {
         let active = true;
 
@@ -58,6 +66,7 @@ export function StudentProfileProvider({ children }) {
         loading,
         error,
         refreshProfile,
+        refreshPlacementRegistration
     };
 
     return (

@@ -6,7 +6,16 @@ function StudentSidebar() {
     const navigate = useNavigate();
     const { profile, loading } = useStudentProfile();
 
-    const approved = profile?.profileStatus === "APPROVED";
+    const profileApproved = profile?.profileStatus === "APPROVED";
+
+    const registrationApproved =
+        profile?.placementRegistrationStatus === "APPROVED";
+
+    const approved = profileApproved && registrationApproved;
+
+    const lockedDestination = profileApproved
+        ? "/student/placement-registration"
+        : "/student/profile";
 
     function logout() {
         sessionStorage.removeItem("token");
@@ -47,14 +56,23 @@ function StudentSidebar() {
                     <span>♙</span> My Profile
                 </NavLink>
 
+                <NavLink
+                    to="/student/placement-registration"
+                    className={({ isActive }) =>
+                        `sidebar-link ${isActive ? "active" : ""}`
+                    }
+                >
+                    <span>✓</span> Placement Registration
+                </NavLink>
+
                 <p className="sidebar-label">PLACEMENTS</p>
 
                 <NavLink
-                    to={approved ? "/student/jobs" : "/student/profile"}
+                    to={approved ? "/student/jobs" : lockedDestination}
                     onClick={(event) => {
                         if (!approved) {
                             event.preventDefault();
-                            navigate("/student/profile");
+                            navigate(lockedDestination);
                         }
                     }}
                     className={({ isActive }) =>
@@ -73,11 +91,11 @@ function StudentSidebar() {
                 </NavLink>
 
                 <NavLink
-                    to={approved ? "/student/applications" : "/student/profile"}
+                    to={approved ? "/student/applications" : lockedDestination}
                     onClick={(event) => {
                         if (!approved) {
                             event.preventDefault();
-                            navigate("/student/profile");
+                            navigate(lockedDestination);
                         }
                     }}
                     className={({ isActive }) =>

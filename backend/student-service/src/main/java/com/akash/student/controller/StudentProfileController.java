@@ -2,6 +2,8 @@ package com.akash.student.controller;
 
 import com.akash.student.dto.StudentProfileRequest;
 import com.akash.student.dto.StudentProfileResponse;
+import com.akash.student.enums.PlacementRegistrationStatus;
+import com.akash.student.enums.ProfileStatus;
 import com.akash.student.model.StudentProfile;
 import com.akash.student.service.StudentProfileService;
 
@@ -91,4 +93,39 @@ public class StudentProfileController {
                 .cacheControl(CacheControl.noStore())
                 .body(pdf);
     }
+
+
+
+    @GetMapping("/placement-registration")
+    public ResponseEntity<StudentProfileResponse> getPlacementRegistration(
+            @RequestAttribute("userId") Long userId) {
+
+        StudentProfile profile = service.getMyProfile(userId);
+
+        return ResponseEntity.ok(StudentProfileResponse.from(profile));
+    }
+
+    @PostMapping("/placement-registration/register")
+    public ResponseEntity<StudentProfileResponse> registerForPlacement(
+            @RequestAttribute("userId") Long userId) {
+
+        StudentProfile profile = service.registerForPlacement(userId);
+
+        return ResponseEntity.ok(StudentProfileResponse.from(profile));
+    }
+
+    @GetMapping("/placement-access")
+    public ResponseEntity<Boolean> hasPlacementAccess(
+            @RequestAttribute("userId") Long userId) {
+
+        StudentProfile profile = service.getMyProfile(userId);
+
+        boolean allowed =
+                profile.getProfileStatus() == ProfileStatus.APPROVED
+                        && profile.getPlacementRegistrationStatus()
+                        == PlacementRegistrationStatus.APPROVED;
+
+        return ResponseEntity.ok(allowed);
+    }
+
 }

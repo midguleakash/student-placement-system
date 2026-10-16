@@ -11,10 +11,18 @@ function StudentDashboard() {
     }
 
     const status = profile?.profileStatus || "INCOMPLETE";
-    const approved = status === "APPROVED";
+    const profileApproved = status === "APPROVED";
     const rejected = status === "REJECTED";
     const pending = status === "PENDING";
 
+    const registrationStatus =
+        profile?.placementRegistrationStatus || "NOT_REGISTERED";
+
+    const registrationApproved = registrationStatus === "APPROVED";
+    const registrationPending = registrationStatus === "PENDING";
+    const registrationRejected = registrationStatus === "REJECTED";
+
+    const approved = profileApproved && registrationApproved;
     const requiredFields = [
         profile?.firstName,
         profile?.lastName,
@@ -24,17 +32,16 @@ function StudentDashboard() {
         profile?.cgpa,
         profile?.activeBacklogs,
         profile?.skills,
-        profile?.resumeUrl,
     ];
 
     const completed = requiredFields.filter(
-        value => value !== null && value !== undefined &&
+        value =>
+            value !== null &&
+            value !== undefined &&
             String(value).trim() !== ""
-    ).length;
+    ).length + (profile?.hasResume === true ? 1 : 0);
 
-    const percentage = Math.round(
-        (completed / requiredFields.length) * 100
-    );
+    const percentage = Math.round((completed / 9) * 100);
 
     return (
         <div className="student-page">
@@ -46,15 +53,30 @@ function StudentDashboard() {
                             ? `, ${profile.firstName}`
                             : " to your portal"}
                     </h1>
+
                     <p>
-                        {pending
-                            ? "Your profile is submitted and awaiting admin approval. Placement opportunities will unlock once approved."
-                            : rejected
-                                ? "Your profile needs changes. Review the admin remarks and update your details."
-                                : approved
-                                    ? "Your profile is approved. Explore job openings and manage your placement applications."
-                                    : "Complete your student profile and submit it for admin approval to access placement opportunities."}
+                        {!profileApproved
+                            ? pending
+                                ? "Your profile is awaiting admin approval."
+                                : rejected
+                                    ? "Your profile needs changes. Review the admin remarks and update your details."
+                                    : "Complete your student profile and submit it for approval."
+                            : registrationApproved
+                                ? "Your profile and placement registration are approved. You can explore eligible jobs and manage applications."
+                                : registrationPending
+                                    ? "Your profile is approved. Your placement registration is awaiting admin approval."
+                                    : registrationRejected
+                                        ? "Your placement registration was rejected. Review the admin remarks and register again."
+                                        : "Your profile is approved. Register for placement to unlock jobs and applications."}
                     </p>
+
+                    {registrationRejected && profile?.placementRejectionRemarks && (
+                        <p>
+                            <strong>Admin remarks:</strong>{" "}
+                            {profile.placementRejectionRemarks}
+                        </p>
+                    )}
+
                 </div>
 
                 <div className="welcome-status">
@@ -68,7 +90,7 @@ function StudentDashboard() {
                 </div>
             )}
 
-            {!approved && (
+            {!profileApproved && (
                 <section className="notice-panel">
                     <div className="notice-icon">
                         {pending ? "◷" : rejected ? "!" : "✓"}
@@ -121,24 +143,44 @@ function StudentDashboard() {
                 </section>
             )}
 
-            {approved && (
-                <section className="notice-panel notice-approved">
-                    <div className="notice-icon">✓</div>
+
+            {profileApproved && !registrationApproved && (
+                <section className="notice-panel">
+                    <div className="notice-icon">
+                        {registrationPending ? "◷" : registrationRejected ? "!" : "✓"}
+                    </div>
+
                     <div className="notice-copy">
-                        <h3>Your profile is approved!</h3>
+                        <h3>
+                            {registrationPending
+                                ? "Placement registration under review"
+                                : registrationRejected
+                                    ? "Placement registration rejected"
+                                    : "Register for placements"}
+                        </h3>
+
                         <p>
-                            You can now browse job openings and apply
-                            to eligible placements.
+                            {registrationPending
+                                ? "Wait for admin approval. Jobs and applications remain locked."
+                                : registrationRejected
+                                    ? "Review the admin remarks and submit your registration again."
+                                    : "Your profile is approved. Register for placements to request access to jobs and applications."}
                         </p>
-                        <Link
-                            className="button button-primary"
-                            to="/student/jobs"
-                        >
-                            Explore Jobs
-                        </Link>
+
+                        {!registrationPending && (
+                            <Link
+                                className="button button-primary"
+                                to="/student/placement-registration"
+                            >
+                                {registrationRejected
+                                    ? "Review and Register Again"
+                                    : "Register for Placement"}
+                            </Link>
+                        )}
                     </div>
                 </section>
             )}
+
 
             <section className="stats-grid">
                 <article className="stat-card">

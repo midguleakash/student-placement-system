@@ -1,8 +1,8 @@
+
 package com.akash.placement.repository;
 
 import com.akash.placement.enums.CompanyProfileStatus;
 import com.akash.placement.model.CompanyProfile;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -15,7 +15,11 @@ public interface CompanyProfileRepository
 
     boolean existsByUserId(Long userId);
 
+    List<CompanyProfile> findByProfileStatus(
+            CompanyProfileStatus profileStatus);
+
     List<CompanyProfile> findByProfileStatusOrderBySubmittedAtAsc(
-            CompanyProfileStatus profileStatus
-    );
+            CompanyProfileStatus profileStatus);
+
+    long countByProfileStatus(CompanyProfileStatus profileStatus);
 }

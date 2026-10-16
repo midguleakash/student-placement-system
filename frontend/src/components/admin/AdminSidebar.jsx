@@ -5,6 +5,11 @@ import { logout } from "../../utils/auth";
 const links = [
     { label: "Overview", path: "/admin", icon: "▦", end: true },
     { label: "Students", path: "/admin/students", icon: "♙" },
+    {
+        label: "Placement Registrations",
+        path: "/admin/placement-registrations",
+        icon: "✓"
+    },
     { label: "Companies", path: "/admin/companies", icon: "▤" },
     { label: "Job Openings", path: "/admin/jobs", icon: "▣" },
     { label: "Applications", path: "/admin/applications", icon: "☷" },

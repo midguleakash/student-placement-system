@@ -22,6 +22,11 @@ import CompanyApplications from "../pages/company/CompanyApplications";
 
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import AdminLayout from "../layouts/AdminLayout";
+import AdminStudents from "../pages/admin/AdminStudents";
+import AdminCompanies from "../pages/admin/AdminCompanies";
+
+import PlacementRegistration from "../pages/student/PlacementRegistration";
+import AdminPlacementRegistrations from "../pages/admin/AdminPlacementRegistrations";
 
 
 import ProtectedRoute from "../components/auth/ProtectedRoute";
@@ -68,7 +73,7 @@ function AppRoutes() {
 
                         <Route
                             path="placement-registration"
-                            element={<StudentDashboard />}
+                            element={<PlacementRegistration />}
                         />
 
                         <Route path="jobs" element={<StudentJobs />} />
@@ -77,6 +82,8 @@ function AppRoutes() {
                             path="applications"
                             element={<StudentApplications />}
                         />
+
+
                     </Route>
                 </Route>
 
@@ -132,6 +139,12 @@ function AppRoutes() {
                         <Route
                             path="dashboard"
                             element={<AdminDashboard />}
+                        />
+                        <Route path="students" element={<AdminStudents />} />
+                        <Route path="companies" element={<AdminCompanies />} />
+                        <Route
+                            path="placement-registrations"
+                            element={<AdminPlacementRegistrations />}
                         />
 
                         {/* Add these pages as you implement them */}

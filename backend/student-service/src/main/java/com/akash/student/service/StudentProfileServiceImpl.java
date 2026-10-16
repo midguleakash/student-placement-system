@@ -1,6 +1,7 @@
 package com.akash.student.service;
 
 import com.akash.student.dto.StudentProfileRequest;
+import com.akash.student.enums.PlacementRegistrationStatus;
 import com.akash.student.enums.ProfileStatus;
 import com.akash.student.model.StudentProfile;
 import com.akash.student.repository.StudentProfileRepository;
@@ -317,6 +318,167 @@ public class StudentProfileServiceImpl implements StudentProfileService {
     private boolean isBlank(String value) {
         return value == null || value.isBlank();
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public byte[] getStudentResume(Long profileId) {
+        StudentProfile profile = repository.findById(profileId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Student profile not found."));
+
+        String publicId = profile.getResumePublicId();
+
+        if (publicId == null || publicId.isBlank()) {
+            throw new IllegalArgumentException(
+                    "No resume has been uploaded.");
+        }
+
+        try {
+            String signedUrl = cloudinary.url()
+                    .resourceType("raw")
+                    .type("authenticated")
+                    .signed(true)
+                    .generate(publicId);
+
+            HttpClient client = HttpClient.newHttpClient();
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(signedUrl))
+                    .GET()
+                    .build();
+
+            HttpResponse<byte[]> response = client.send(
+                    request,
+                    HttpResponse.BodyHandlers.ofByteArray()
+            );
+
+            if (response.statusCode() != 200) {
+                throw new IllegalStateException(
+                        "Unable to retrieve the private resume from Cloudinary.");
+            }
+
+            String contentType = response.headers()
+                    .firstValue("Content-Type")
+                    .orElse("");
+
+            if (!contentType.equalsIgnoreCase("application/pdf")) {
+                throw new IllegalStateException(
+                        "Cloudinary did not return a PDF file.");
+            }
+
+            if (response.body().length > 5 * 1024 * 1024) {
+                throw new IllegalStateException(
+                        "Resume exceeds the 5 MB limit.");
+            }
+
+            return response.body();
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException(
+                    "Resume retrieval was interrupted.", e);
+        } catch (java.io.IOException e) {
+            throw new IllegalStateException(
+                    "Unable to retrieve the resume.", e);
+        }
+    }
+
+
+
+    @Override
+    @Transactional
+    public StudentProfile registerForPlacement(Long userId) {
+        StudentProfile profile = repository.findByUserId(userId)
+                .orElseThrow(() ->
+                        new RuntimeException("Student profile not found"));
+
+        if (profile.getProfileStatus() != ProfileStatus.APPROVED) {
+            throw new IllegalStateException(
+                    "Your student profile must be approved first");
+        }
+
+        PlacementRegistrationStatus status =
+                profile.getPlacementRegistrationStatus();
+
+        if (status == PlacementRegistrationStatus.PENDING ||
+                status == PlacementRegistrationStatus.APPROVED) {
+            throw new IllegalStateException(
+                    "Placement registration is already " + status);
+        }
+
+        profile.setPlacementRegistrationStatus(
+                PlacementRegistrationStatus.PENDING);
+        profile.setPlacementRegisteredAt(LocalDateTime.now());
+        profile.setPlacementReviewedAt(null);
+        profile.setPlacementReviewedBy(null);
+        profile.setPlacementRejectionRemarks(null);
+
+        return repository.save(profile);
+    }
+
+    @Override
+    @Transactional
+    public StudentProfile approvePlacementRegistration(
+            Long profileId, Long adminUserId) {
+        StudentProfile profile = repository.findById(profileId)
+                .orElseThrow(() ->
+                        new RuntimeException("Student profile not found"));
+
+        if (profile.getProfileStatus() != ProfileStatus.APPROVED) {
+            throw new IllegalStateException(
+                    "Student profile must be approved first");
+        }
+
+        if (profile.getPlacementRegistrationStatus()
+                != PlacementRegistrationStatus.PENDING) {
+            throw new IllegalStateException(
+                    "Only pending placement registrations can be approved");
+        }
+
+        profile.setPlacementRegistrationStatus(
+                PlacementRegistrationStatus.APPROVED);
+        profile.setPlacementReviewedAt(LocalDateTime.now());
+        profile.setPlacementReviewedBy(adminUserId);
+        profile.setPlacementRejectionRemarks(null);
+
+        return repository.save(profile);
+    }
+
+    @Override
+    @Transactional
+    public StudentProfile rejectPlacementRegistration(
+            Long profileId, Long adminUserId, String remarks) {
+        StudentProfile profile = repository.findById(profileId)
+                .orElseThrow(() ->
+                        new RuntimeException("Student profile not found"));
+
+        if (profile.getPlacementRegistrationStatus()
+                != PlacementRegistrationStatus.PENDING) {
+            throw new IllegalStateException(
+                    "Only pending placement registrations can be rejected");
+        }
+
+        if (remarks == null || remarks.isBlank()) {
+            throw new IllegalArgumentException(
+                    "Rejection remarks are required");
+        }
+
+        profile.setPlacementRegistrationStatus(
+                PlacementRegistrationStatus.REJECTED);
+        profile.setPlacementReviewedAt(LocalDateTime.now());
+        profile.setPlacementReviewedBy(adminUserId);
+        profile.setPlacementRejectionRemarks(remarks.trim());
+
+        return repository.save(profile);
+    }
+
+    @Override
+    public java.util.List<StudentProfile> getPendingPlacementRegistrations() {
+        return repository.findByPlacementRegistrationStatus(
+                PlacementRegistrationStatus.PENDING);
+    }
+
 }
 
 

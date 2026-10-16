@@ -123,4 +123,17 @@ export const studentApi = {
             "/api/student/profile/resume/view"
         );
     },
+
+
+    getPlacementRegistration() {
+        return request("/api/student/profile/placement-registration");
+    },
+
+    registerForPlacement() {
+        return request(
+            "/api/student/profile/placement-registration/register",
+            { method: "POST" }
+        );
+    },
+
 };

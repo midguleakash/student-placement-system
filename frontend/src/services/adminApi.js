@@ -162,6 +162,10 @@ export const adminApi = {
         );
     },
 
+    getAllJobs() {
+        return request("/api/admin/jobs");
+    },
+
 
 
 

@@ -44,6 +44,7 @@ async function request(path, options = {}) {
     return data;
 }
 
+
 export const companyApi = {
     getMyProfile() {
         return request("/api/company/profile/me");
@@ -62,10 +63,42 @@ export const companyApi = {
         });
     },
 
+    // Job management
     getMyJobs() {
         return request("/api/company/jobs");
     },
 
+    getMyJob(jobId) {
+        return request(`/api/company/jobs/${jobId}`);
+    },
+
+    createJob(job) {
+        return request("/api/company/jobs", {
+            method: "POST",
+            body: JSON.stringify(job),
+        });
+    },
+
+    updateJob(jobId, job) {
+        return request(`/api/company/jobs/${jobId}`, {
+            method: "PUT",
+            body: JSON.stringify(job),
+        });
+    },
+
+    publishJob(jobId) {
+        return request(`/api/company/jobs/${jobId}/publish`, {
+            method: "PATCH",
+        });
+    },
+
+    closeJob(jobId) {
+        return request(`/api/company/jobs/${jobId}/close`, {
+            method: "PATCH",
+        });
+    },
+
+    // Company sees applications for its own jobs
     getMyApplications() {
         return request("/api/company/applications");
     },

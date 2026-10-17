@@ -19,14 +19,17 @@ import CompanyDashboard from "../pages/company/CompanyDashboard";
 import CompanyProfile from "../pages/company/CompanyProfile";
 import CompanyJobs from "../pages/company/CompanyJobs";
 import CompanyApplications from "../pages/company/CompanyApplications";
+import CompanyJobForm from "../pages/company/CompanyJobForm";
 
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import AdminLayout from "../layouts/AdminLayout";
 import AdminStudents from "../pages/admin/AdminStudents";
 import AdminCompanies from "../pages/admin/AdminCompanies";
+import AdminJobs from "../pages/admin/AdminJobs";
 
 import PlacementRegistration from "../pages/student/PlacementRegistration";
 import AdminPlacementRegistrations from "../pages/admin/AdminPlacementRegistrations";
+
 
 
 import ProtectedRoute from "../components/auth/ProtectedRoute";
@@ -118,10 +121,9 @@ function AppRoutes() {
                         />
 
                         {/* Available after approval */}
-                        <Route
-                            path="jobs"
-                            element={<CompanyJobs />}
-                        />
+                        <Route path="jobs" element={<CompanyJobs />} />
+                        <Route path="jobs/new" element={<CompanyJobForm />} />
+                        <Route path="jobs/:jobId/edit" element={<CompanyJobForm />} />
 
                         <Route
                             path="applications"
@@ -146,6 +148,7 @@ function AppRoutes() {
                             path="placement-registrations"
                             element={<AdminPlacementRegistrations />}
                         />
+                        <Route path="jobs" element={<AdminJobs />} />
 
                         {/* Add these pages as you implement them */}
                         {/* <Route path="students" element={<AdminStudents />} /> */}

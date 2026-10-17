@@ -136,4 +136,23 @@ export const studentApi = {
         );
     },
 
+
+    // Job openings
+    getEligibleJobs() {
+        return request("/api/jobs/eligible");
+    },
+
+    // Apply for a job
+    applyForJob(jobId) {
+        return request(`/api/jobs/${jobId}/apply`, {
+            method: "POST",
+        });
+    },
+
+    // Student's submitted applications
+    getMyApplications() {
+        return request("/api/jobs/applications/me");
+    },
+
+
 };

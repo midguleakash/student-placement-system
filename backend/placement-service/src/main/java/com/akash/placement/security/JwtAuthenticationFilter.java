@@ -56,7 +56,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
 
-            if (!role.equals("COMPANY") && !role.equals("ADMIN")) {
+            if (!role.equals("STUDENT")
+                    && !role.equals("COMPANY")
+                    && !role.equals("ADMIN")) {
                 response.sendError(
                         HttpServletResponse.SC_FORBIDDEN,
                         "This role cannot access the Placement Service endpoint."

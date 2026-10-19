@@ -33,7 +33,9 @@ public class SecurityConfig {
                                 SessionCreationPolicy.STATELESS
                         ))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/error").permitAll()
+                        .requestMatchers("/error",
+                                "/api/internal/students/**"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(

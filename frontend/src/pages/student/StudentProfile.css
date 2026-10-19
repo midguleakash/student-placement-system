@@ -848,3 +848,141 @@ textarea {
 }
 
 
+.student-job-filters {
+    margin: 24px 0;
+    padding: 22px;
+    background: var(--card-bg, #fff);
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+}
+
+.student-job-filter-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.student-job-filter-heading h2 {
+    margin: 0;
+}
+
+.student-job-filter-heading p {
+    margin: 6px 0 0;
+    color: #6b7280;
+}
+
+.student-job-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 22px;
+}
+
+.student-job-filter-grid label {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.student-job-filter-grid input,
+.student-job-filter-grid select {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    min-height: 42px;
+    padding: 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 7px;
+    background: #fff;
+    color: #1f2937;
+    font: inherit;
+    font-weight: 400;
+}
+
+.student-job-filter-grid input:focus,
+.student-job-filter-grid select:focus {
+    outline: 2px solid #93c5fd;
+    outline-offset: 1px;
+    border-color: #2563eb;
+}
+
+.student-job-filter-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+    color: #6b7280;
+    font-size: 13px;
+}
+
+@media (max-width: 900px) {
+    .student-job-filter-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 560px) {
+    .student-job-filter-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .student-job-filters {
+        padding: 15px;
+    }
+}
+
+
+.student-job-filter-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.student-job-filter-grid {
+    animation: student-job-filters-appear 0.18s ease-out;
+}
+
+@keyframes student-job-filters-appear {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.student-job-filter-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+@media (max-width: 600px) {
+    .student-job-filter-heading {
+        align-items: flex-start;
+        gap: 14px;
+    }
+
+    .student-job-filter-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .student-job-filter-footer {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}

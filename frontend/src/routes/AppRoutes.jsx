@@ -26,6 +26,7 @@ import AdminLayout from "../layouts/AdminLayout";
 import AdminStudents from "../pages/admin/AdminStudents";
 import AdminCompanies from "../pages/admin/AdminCompanies";
 import AdminJobs from "../pages/admin/AdminJobs";
+import AdminApplications from "../pages/admin/AdminApplications";
 
 import PlacementRegistration from "../pages/student/PlacementRegistration";
 import AdminPlacementRegistrations from "../pages/admin/AdminPlacementRegistrations";
@@ -149,6 +150,11 @@ function AppRoutes() {
                             element={<AdminPlacementRegistrations />}
                         />
                         <Route path="jobs" element={<AdminJobs />} />
+
+                        <Route
+                            path="applications"
+                            element={<AdminApplications />}
+                        />
 
                         {/* Add these pages as you implement them */}
                         {/* <Route path="students" element={<AdminStudents />} /> */}

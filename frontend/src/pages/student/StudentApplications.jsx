@@ -106,7 +106,7 @@ function StudentApplications() {
                             return (
                                 <article
                                     className="student-job-card"
-                                    key={applicationId}
+                                    key={applicationId ?? `${application.jobId}-${application.studentUserId}`}
                                 >
                                     <h3>{title}</h3>
 
@@ -134,10 +134,10 @@ function StudentApplications() {
                                         </span>
                                     </p>
 
-                                    {application.remarks && (
+                                    {(application.statusRemarks || application.remarks) && (
                                         <p>
                                             <strong>Remarks:</strong>{" "}
-                                            {application.remarks}
+                                            {application.statusRemarks || application.remarks}
                                         </p>
                                     )}
                                 </article>
@@ -146,7 +146,7 @@ function StudentApplications() {
                     </div>
                 )}
 
-                
+
             </section>
         </div>
     );

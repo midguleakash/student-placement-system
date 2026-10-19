@@ -14,7 +14,7 @@ function CompanySidebar() {
         { label: "Dashboard", path: "/company/dashboard", icon: "⌂" },
         { label: "Company Profile", path: "/company/profile", icon: "▤" },
         { label: "Job Openings", path: "/company/jobs", icon: "▣" },
-        { label: "Applicants", path: "/company/applications", icon: "♙" },
+        { label: "Applications", path: "/company/applications", icon: "♙" },
     ];
 
     function logout() {

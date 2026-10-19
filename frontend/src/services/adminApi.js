@@ -166,7 +166,9 @@ export const adminApi = {
         return request("/api/admin/jobs");
     },
 
-
+    getAllApplications() {
+        return request("/api/admin/applications");
+    },
 
 
 };

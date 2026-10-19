@@ -50,7 +50,8 @@ public class SecurityConfig {
                                 "/api/auth/register/send-otp",
                                 "/api/auth/register/verify-otp",
                                 "/api/auth/register/complete",
-                                "/api/auth/register/company/complete"
+                                "/api/auth/register/company/complete",
+                                "/api/internal/users/**"
                         ).permitAll()
 
                         .anyRequest().authenticated()

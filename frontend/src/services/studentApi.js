@@ -16,18 +16,36 @@ async function handleUnauthorized(response) {
 }
 
 // Common error handler
+
 async function handleResponseError(response, defaultMessage) {
     await handleUnauthorized(response);
 
-    const message = await response.text();
+    const contentType = response.headers.get("content-type") || "";
+    let message = "";
+
+    if (contentType.includes("application/json")) {
+        try {
+            const body = await response.json();
+            message =
+                body.message ||
+                body.detail ||
+                body.title ||
+                "";
+        } catch {
+            message = "";
+        }
+    } else {
+        message = await response.text();
+    }
 
     const error = new Error(
-        message || `${defaultMessage}: ${response.status}`
+        message || `${defaultMessage}: ${response.status} `
     );
 
     error.status = response.status;
     throw error;
 }
+
 
 // JSON API requests
 async function request(url, options = {}) {

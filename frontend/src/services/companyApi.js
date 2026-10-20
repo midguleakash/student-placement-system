@@ -102,4 +102,32 @@ export const companyApi = {
     getMyApplications() {
         return request("/api/company/applications");
     },
+
+
+    // Round 1 resume screening
+    getApplicationScreening(applicationId) {
+        return request(
+            `/api/company/applications/${applicationId}/screening`
+        );
+    },
+
+    createRoundOne(applicationId) {
+        return request(
+            `/api/company/applications/${applicationId}/rounds/1`,
+            {
+                method: "POST",
+            }
+        );
+    },
+
+    decideRoundOne(applicationId, decision) {
+        return request(
+            `/api/company/applications/${applicationId}/rounds/1/decision`,
+            {
+                method: "PUT",
+                body: JSON.stringify(decision),
+            }
+        );
+    },
+
 };

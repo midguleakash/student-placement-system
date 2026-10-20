@@ -1,10 +1,11 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 
 import { useCompanyProfile } from "../../context/CompanyProfileContext";
 import { companyApi } from "../../services/companyApi";
 import StatusBadge from "../../components/company/StatusBadge";
+
 import "./CompanyDashboard.css";
 import "./CompanyApplications.css";
 
@@ -74,6 +75,7 @@ function getAppliedDate(application) {
     if (!value) return null;
 
     const date = new Date(value);
+
     return Number.isNaN(date.getTime()) ? null : date;
 }
 
@@ -81,19 +83,35 @@ function formatDate(date) {
     return date ? date.toLocaleString() : "—";
 }
 
+function getAppliedDay(date) {
+    if (!date) return "";
+
+    return [
+        date.getFullYear(),
+        String(date.getMonth() + 1).padStart(2, "0"),
+        String(date.getDate()).padStart(2, "0"),
+    ].join("-");
+}
+
 function CompanyApplications() {
     const { profile } = useCompanyProfile();
+    const { jobId: routeJobId } = useParams();
     const [searchParams] = useSearchParams();
 
-    const selectedJobId = searchParams.get("jobId");
+    // Supports both /company/applications?jobId=5
+    // and /company/jobs/5/applicants.
+    const selectedJobId =
+        routeJobId ?? searchParams.get("jobId") ?? "";
+
+    const isJobSpecific = Boolean(routeJobId || searchParams.get("jobId"));
+    const approved = profile?.profileStatus === "APPROVED";
 
     const [applications, setApplications] = useState([]);
+    const [job, setJob] = useState(null);
     const [filters, setFilters] = useState(initialFilters);
-    const [showFilters, setShowFilters] = useState(false);
+    const [showFilters, setShowFilters] = useState(true);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-
-    const approved = profile?.profileStatus === "APPROVED";
 
     const loadApplications = useCallback(async () => {
         if (!approved) {
@@ -118,9 +136,8 @@ function CompanyApplications() {
 
             setApplications(records);
         } catch (err) {
-            setError(
-                err.message || "Unable to load applications."
-            );
+            setError(err.message || "Unable to load applications.");
+            setApplications([]);
         } finally {
             setLoading(false);
         }
@@ -129,6 +146,35 @@ function CompanyApplications() {
     useEffect(() => {
         loadApplications();
     }, [loadApplications]);
+
+    // Fetch the job separately so its title appears even when
+    // no students have applied yet.
+    useEffect(() => {
+        let cancelled = false;
+
+        async function loadJob() {
+            setJob(null);
+
+            if (!selectedJobId || !approved) return;
+
+            try {
+                const result = await companyApi.getMyJob(selectedJobId);
+
+                if (!cancelled) {
+                    setJob(result?.job ?? result);
+                }
+            } catch {
+                // The application list can still be displayed.
+                // The heading will fall back to the job ID.
+            }
+        }
+
+        loadJob();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [selectedJobId, approved]);
 
     function updateFilter(event) {
         const { name, value } = event.target;
@@ -162,38 +208,56 @@ function CompanyApplications() {
         );
     }, [applications]);
 
+    const selectedJob = useMemo(() => {
+        if (!selectedJobId) return null;
+
+        const applicationJob = jobOptions.find(
+            (item) => item.id === String(selectedJobId)
+        );
+
+        return {
+            id: selectedJobId,
+            title:
+                job?.title ??
+                applicationJob?.title ??
+                `Job #${selectedJobId}`,
+        };
+    }, [selectedJobId, job, jobOptions]);
+
+    // Restrict the list to the selected job first, then apply
+    // the user's filters.
+    const jobApplications = useMemo(() => {
+        if (!selectedJobId) return applications;
+
+        return applications.filter(
+            (application) =>
+                String(getJobId(application)) === String(selectedJobId)
+        );
+    }, [applications, selectedJobId]);
+
     const filteredApplications = useMemo(() => {
         const search = filters.search.trim().toLowerCase();
         const titleFilter = filters.jobTitle.trim().toLowerCase();
 
-        return applications.filter((application) => {
-            const jobId = getJobId(application);
+        return jobApplications.filter((application) => {
             const jobTitle = getJobTitle(application);
             const studentName = getStudentName(application);
             const studentEmail = getStudentEmail(application);
             const status = getStatus(application);
             const appliedDate = getAppliedDate(application);
+            const appliedDay = getAppliedDay(appliedDate);
 
             const searchableText = [
                 studentName,
                 studentEmail,
                 jobTitle,
-                jobId,
+                getJobId(application),
+                getApplicationId(application),
             ]
                 .join(" ")
                 .toLowerCase();
 
-            const appliedDay = appliedDate
-                ? [
-                    appliedDate.getFullYear(),
-                    String(appliedDate.getMonth() + 1).padStart(2, "0"),
-                    String(appliedDate.getDate()).padStart(2, "0"),
-                ].join("-")
-                : "";
-
             return (
-                (!selectedJobId ||
-                    String(jobId) === String(selectedJobId)) &&
                 (!search || searchableText.includes(search)) &&
                 jobTitle.toLowerCase().includes(titleFilter) &&
                 (!filters.status || status === filters.status) &&
@@ -203,24 +267,20 @@ function CompanyApplications() {
                     (appliedDay && appliedDay <= filters.appliedTo))
             );
         });
-    }, [applications, filters, selectedJobId]);
+    }, [jobApplications, filters]);
 
-    const counts = useMemo(() => {
-        const records = filteredApplications;
-
-        return {
-            total: records.length,
-            applied: records.filter(
-                (item) => getStatus(item) === "APPLIED"
-            ).length,
-            shortlisted: records.filter(
-                (item) => getStatus(item) === "SHORTLISTED"
-            ).length,
-            rejected: records.filter(
-                (item) => getStatus(item) === "REJECTED"
-            ).length,
-        };
-    }, [filteredApplications]);
+    const counts = useMemo(() => ({
+        total: filteredApplications.length,
+        applied: filteredApplications.filter(
+            (item) => getStatus(item) === "APPLIED"
+        ).length,
+        shortlisted: filteredApplications.filter(
+            (item) => getStatus(item) === "SHORTLISTED"
+        ).length,
+        rejected: filteredApplications.filter(
+            (item) => getStatus(item) === "REJECTED"
+        ).length,
+    }), [filteredApplications]);
 
     if (!approved) {
         return (
@@ -232,7 +292,9 @@ function CompanyApplications() {
                         Your company profile must be approved before you
                         can manage student applications.
                     </p>
+
                     <StatusBadge status={profile?.profileStatus} />
+
                     <Link
                         to="/company/profile"
                         className="company-button primary"
@@ -244,36 +306,25 @@ function CompanyApplications() {
         );
     }
 
-    const selectedJob = jobOptions.find(
-        (job) => job.id === String(selectedJobId)
-    );
-
     return (
         <section className="company-profile-page">
             <div className="company-page-title">
                 <div>
-                    <span className="company-kicker">
-                        RECRUITMENT
-                    </span>
+                    <span className="company-kicker">RECRUITMENT</span>
 
                     <h1>
-                        {selectedJobId
-                            ? "Job Applicants"
-                            : "All Applications"}
+                        {isJobSpecific ? "Job Applicants" : "All Applications"}
                     </h1>
 
                     <p>
-                        {selectedJobId
-                            ? `Review applications for ${
-                                selectedJob?.title ??
-                                `Job #${selectedJobId}`
-                            }.`
+                        {isJobSpecific
+                            ? `Review and filter applicants for ${selectedJob?.title ?? `Job #${selectedJobId}`}.`
                             : "Review and manage applications submitted to your job openings."}
                     </p>
                 </div>
 
                 <div className="company-application-header-actions">
-                    {selectedJobId && (
+                    {isJobSpecific && (
                         <Link
                             to="/company/applications"
                             className="company-button"
@@ -292,6 +343,25 @@ function CompanyApplications() {
                     </button>
                 </div>
             </div>
+
+            {isJobSpecific && (
+                <div className="selected-job-banner">
+                    <div>
+                        <span>YOU ARE REVIEWING APPLICANTS FOR</span>
+                        <h2>
+                            {selectedJob?.title ?? `Job #${selectedJobId}`}
+                        </h2>
+                        <p>Job ID: {selectedJobId}</p>
+                    </div>
+
+                    <Link
+                        to="/company/jobs"
+                        className="company-button"
+                    >
+                        Back to Jobs
+                    </Link>
+                </div>
+            )}
 
             {error && (
                 <div className="company-alert error" role="alert">
@@ -326,8 +396,7 @@ function CompanyApplications() {
                     <div>
                         <h2>Search and Filter Applications</h2>
                         <p>
-                            Find applicants by student, job, status,
-                            or application date.
+                            Find applicants by student, status, or application date.
                         </p>
                     </div>
 
@@ -339,11 +408,8 @@ function CompanyApplications() {
                                 setShowFilters((previous) => !previous)
                             }
                             aria-expanded={showFilters}
-                            aria-controls="company-application-filter-fields"
                         >
-                            {showFilters
-                                ? "Hide Filters ▲"
-                                : "Show Filters ▼"}
+                            {showFilters ? "Hide Filters ▲" : "Show Filters ▼"}
                         </button>
 
                         <button
@@ -357,12 +423,9 @@ function CompanyApplications() {
                 </div>
 
                 {showFilters && (
-                    <div
-                        id="company-application-filter-fields"
-                        className="company-application-filter-grid"
-                    >
+                    <div className="company-application-filter-grid">
                         <label>
-                            Student, email, or job
+                            Student, email, or application ID
                             <input
                                 name="search"
                                 value={filters.search}
@@ -371,15 +434,17 @@ function CompanyApplications() {
                             />
                         </label>
 
-                        <label>
-                            Job title
-                            <input
-                                name="jobTitle"
-                                value={filters.jobTitle}
-                                onChange={updateFilter}
-                                placeholder="Filter by job title"
-                            />
-                        </label>
+                        {!isJobSpecific && (
+                            <label>
+                                Job title
+                                <input
+                                    name="jobTitle"
+                                    value={filters.jobTitle}
+                                    onChange={updateFilter}
+                                    placeholder="Filter by job title"
+                                />
+                            </label>
+                        )}
 
                         <label>
                             Application status
@@ -424,13 +489,7 @@ function CompanyApplications() {
                 <div className="company-application-filter-footer">
                     <span>
                         Showing {filteredApplications.length} of{" "}
-                        {applications.filter(
-                            (application) =>
-                                !selectedJobId ||
-                                String(getJobId(application)) ===
-                                    String(selectedJobId)
-                        ).length}{" "}
-                        applications
+                        {jobApplications.length} applications
                     </span>
 
                     {showFilters && (
@@ -452,18 +511,22 @@ function CompanyApplications() {
             ) : filteredApplications.length === 0 ? (
                 <div className="company-empty-state">
                     <h3>
-                        {applications.length === 0
-                            ? "No applications available"
+                        {jobApplications.length === 0
+                            ? isJobSpecific
+                                ? "No applicants for this job yet"
+                                : "No applications available"
                             : "No applications match your filters"}
                     </h3>
 
                     <p>
-                        {applications.length === 0
-                            ? "Applications will appear here when students apply to your published jobs."
-                            : "Try changing the filters or clearing them to see more applications."}
+                        {jobApplications.length === 0
+                            ? isJobSpecific
+                                ? "Student applications for this job will appear here when students apply."
+                                : "Applications will appear here when students apply to your published jobs."
+                            : "Try changing your filters or clearing them to see more applications."}
                     </p>
 
-                    {applications.length > 0 && (
+                    {jobApplications.length > 0 && (
                         <button
                             type="button"
                             className="company-button"
@@ -480,6 +543,7 @@ function CompanyApplications() {
                         const jobId = getJobId(application);
                         const status = getStatus(application);
                         const appliedDate = getAppliedDate(application);
+                        const studentName = getStudentName(application);
 
                         return (
                             <article
@@ -488,22 +552,21 @@ function CompanyApplications() {
                             >
                                 <div className="company-application-card-main">
                                     <div className="company-application-avatar">
-                                        {getStudentName(application)
-                                            .charAt(0)
-                                            .toUpperCase()}
+                                        {studentName.charAt(0).toUpperCase()}
                                     </div>
 
                                     <div className="company-application-person">
-                                        <h3>
-                                            {getStudentName(application)}
-                                        </h3>
-                                        <p>
-                                            {getStudentEmail(application)}
-                                        </p>
-                                        <p>
-                                            Applied for:{" "}
-                                            <strong>{getJobTitle(application)}</strong>
-                                        </p>
+                                        <h3>{studentName}</h3>
+
+                                        <p>{getStudentEmail(application)}</p>
+
+                                        {!isJobSpecific && (
+                                            <p>
+                                                Applied for:{" "}
+                                                <strong>{getJobTitle(application)}</strong>
+                                            </p>
+                                        )}
+
                                         <p>
                                             Application ID: {id ?? "—"}
                                             {" · "}
@@ -512,8 +575,7 @@ function CompanyApplications() {
 
                                         {application.statusRemarks && (
                                             <p>
-                                                Remarks:{" "}
-                                                {application.statusRemarks}
+                                                Remarks: {application.statusRemarks}
                                             </p>
                                         )}
                                     </div>
@@ -522,12 +584,21 @@ function CompanyApplications() {
                                 <div className="company-application-card-actions">
                                     <StatusBadge status={status} />
 
-                                    {jobId != null && (
+                                    {!isJobSpecific && jobId != null && (
                                         <Link
-                                            to={`/company/applications?jobId=${jobId}`}
+                                            to={`/company/jobs/${jobId}/applicants`}
                                             className="company-button"
                                         >
                                             View Job Applicants
+                                        </Link>
+                                    )}
+
+                                    {id != null && (
+                                        <Link
+                                            to={`/company/applications/${id}`}
+                                            className="company-button primary"
+                                        >
+                                            View Candidate
                                         </Link>
                                     )}
                                 </div>

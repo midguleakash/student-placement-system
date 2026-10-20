@@ -20,6 +20,9 @@ import CompanyProfile from "../pages/company/CompanyProfile";
 import CompanyJobs from "../pages/company/CompanyJobs";
 import CompanyApplications from "../pages/company/CompanyApplications";
 import CompanyJobForm from "../pages/company/CompanyJobForm";
+import CompanyCandidateDetails from "../pages/company/CompanyCandidateDetails";
+// import CompanyRoundOne from "../pages/company/CompanyRoundOne";
+import CompanyJobApplicants from "../pages/company/CompanyJobApplicants";
 
 import AdminDashboard from "../pages/admin/AdminDashboard";
 import AdminLayout from "../layouts/AdminLayout";
@@ -130,6 +133,23 @@ function AppRoutes() {
                             path="applications"
                             element={<CompanyApplications />}
                         />
+
+                        <Route
+                            path="jobs/:jobId/applicants"
+                            element={<CompanyJobApplicants />}
+                        />
+
+                        <Route
+                            path="applications/:applicationId"
+                            element={<CompanyCandidateDetails />}
+                        />
+
+
+
+                        {/* <Route
+                            path="applications/:applicationId/rounds/1"
+                            element={<CompanyRoundOne />}
+                        /> */}
 
                     </Route>
                 </Route>

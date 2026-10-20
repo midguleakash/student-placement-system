@@ -48,6 +48,8 @@ function CompanyJobs() {
         try {
             const result = await companyApi.getMyJobs();
 
+
+
             setJobs(
                 Array.isArray(result)
                     ? result
@@ -470,12 +472,12 @@ function CompanyJobs() {
                                         Deadline:{" "}
                                         {job.applicationDeadline
                                             ? new Date(
-                                                  job.applicationDeadline
-                                              ).toLocaleString()
+                                                job.applicationDeadline
+                                            ).toLocaleString()
                                             : job.deadline
                                                 ? new Date(
-                                                      job.deadline
-                                                  ).toLocaleString()
+                                                    job.deadline
+                                                ).toLocaleString()
                                                 : "Not provided"}
                                     </p>
 
@@ -542,8 +544,8 @@ function CompanyJobs() {
                                     )}
 
                                     <Link
-                                        to={`/company/applications?jobId=${id}`}
-                                        className="company-button"
+                                        to={`/company/jobs/${id}/applicants`}
+                                        className="company-button primary"
                                     >
                                         View Applicants
                                     </Link>

@@ -45,6 +45,20 @@ async function request(path, options = {}) {
 }
 
 
+function buildQueryParams(filters = {}) {
+    const params = new URLSearchParams();
+
+    Object.entries(filters).forEach(([key, value]) => {
+        if (value !== "" && value !== null && value !== undefined) {
+            params.set(key, value);
+        }
+    });
+
+    return params.toString();
+}
+
+
+
 export const companyApi = {
     getMyProfile() {
         return request("/api/company/profile/me");
@@ -99,9 +113,44 @@ export const companyApi = {
     },
 
     // Company sees applications for its own jobs
-    getMyApplications() {
-        return request("/api/company/applications");
+
+    getMyApplications(filters = {}) {
+        const query = buildQueryParams(filters);
+
+        return request(
+            `/api/company/applications${query ? `?${query}` : ""}`
+        );
     },
+
+    getJobApplications(jobId, filters = {}) {
+        if (!jobId) {
+            throw new Error("Job ID is required.");
+        }
+
+        const query = buildQueryParams(filters);
+
+        return request(
+            `/api/company/jobs/${encodeURIComponent(jobId)}/applications${query ? `?${query}` : ""
+            }`
+        );
+    },
+
+    // Company-wide statistics
+    getApplicationStats() {
+        return request("/api/company/applications/stats");
+    },
+
+    // Statistics for one job
+    getJobApplicationStats(jobId) {
+        if (!jobId) {
+            throw new Error("Job ID is required.");
+        }
+
+        return request(
+            `/api/company/jobs/${encodeURIComponent(jobId)}/applications/stats`
+        );
+    },
+
 
 
     // Round 1 resume screening

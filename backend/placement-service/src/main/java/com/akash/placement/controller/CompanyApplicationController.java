@@ -2,6 +2,7 @@
 package com.akash.placement.controller;
 
 import com.akash.placement.dto.CompanyApplicationResponse;
+import com.akash.placement.dto.CompanyApplicationStatsResponse;
 import com.akash.placement.enums.ApplicationStatus;
 import com.akash.placement.service.CompanyApplicationService;
 
@@ -79,5 +80,36 @@ public class CompanyApplicationController {
                 );
 
         return ResponseEntity.ok(applications);
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<CompanyApplicationStatsResponse> getCompanyStats(
+            HttpServletRequest request) {
+
+        Long userId = getAuthenticatedUserId(request);
+
+        return ResponseEntity.ok(
+                companyApplicationService.getCompanyApplicationStats(userId)
+        );
+    }
+
+
+
+    private Long getAuthenticatedUserId(HttpServletRequest request) {
+        Object rawUserId = request.getAttribute("userId");
+
+        if (rawUserId == null) {
+            throw new IllegalStateException(
+                    "Authenticated user ID is missing from the request."
+            );
+        }
+
+        try {
+            return Long.valueOf(rawUserId.toString());
+        } catch (NumberFormatException ex) {
+            throw new IllegalStateException(
+                    "Invalid authenticated user ID."
+            );
+        }
     }
 }

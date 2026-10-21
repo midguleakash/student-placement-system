@@ -2,6 +2,7 @@
 package com.akash.placement.service;
 
 import com.akash.placement.dto.CompanyApplicationResponse;
+import com.akash.placement.dto.CompanyApplicationStatsResponse;
 import com.akash.placement.enums.ApplicationStatus;
 import com.akash.placement.enums.CompanyProfileStatus;
 import com.akash.placement.exception.ResourceNotFoundException;
@@ -175,4 +176,131 @@ public class CompanyApplicationServiceImpl
 
         return true;
     }
+
+    @Override
+    public List<CompanyApplicationResponse> getJobApplications(
+            Long userId,
+            Long jobId,
+            ApplicationStatus status,
+            String search,
+            LocalDate appliedFrom,
+            LocalDate appliedTo
+    ) {
+        if (jobId == null) {
+            throw new IllegalArgumentException("Job ID is required.");
+        }
+
+        return getCompanyApplications(
+                userId,
+                jobId,
+                status,
+                search,
+                appliedFrom,
+                appliedTo
+        );
+    }
+
+    @Override
+    public CompanyApplicationStatsResponse getCompanyApplicationStats(
+            Long userId
+    ) {
+        CompanyProfile company = getApprovedCompany(userId);
+
+        List<Job> companyJobs =
+                jobRepository.findByCompanyIdOrderByCreatedAtDesc(
+                        company.getId()
+                );
+
+        long total = 0;
+        long applied = 0;
+        long shortlisted = 0;
+        long rejected = 0;
+
+        for (Job job : companyJobs) {
+            Long jobId = job.getId();
+
+            total += jobApplicationRepository.countByJobId(jobId);
+
+            applied += jobApplicationRepository.countByJobIdAndStatus(
+                    jobId, ApplicationStatus.APPLIED
+            );
+
+            shortlisted += jobApplicationRepository.countByJobIdAndStatus(
+                    jobId, ApplicationStatus.SHORTLISTED
+            );
+
+            rejected += jobApplicationRepository.countByJobIdAndStatus(
+                    jobId, ApplicationStatus.REJECTED
+            );
+        }
+
+        return new CompanyApplicationStatsResponse(
+                total,
+                applied,
+                shortlisted,
+                rejected
+        );
+    }
+
+    @Override
+    public CompanyApplicationStatsResponse getJobApplicationStats(
+            Long userId,
+            Long jobId
+    ) {
+        CompanyProfile company = getApprovedCompany(userId);
+
+        if (jobId == null) {
+            throw new IllegalArgumentException("Job ID is required.");
+        }
+
+        // Verify that this job belongs to the logged-in company.
+        jobRepository.findByIdAndCompanyId(jobId, company.getId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Job not found for your company."
+                ));
+
+        long total = jobApplicationRepository.countByJobId(jobId);
+
+        long applied = jobApplicationRepository.countByJobIdAndStatus(
+                jobId, ApplicationStatus.APPLIED
+        );
+
+        long shortlisted = jobApplicationRepository.countByJobIdAndStatus(
+                jobId, ApplicationStatus.SHORTLISTED
+        );
+
+        long rejected = jobApplicationRepository.countByJobIdAndStatus(
+                jobId, ApplicationStatus.REJECTED
+        );
+
+        return new CompanyApplicationStatsResponse(
+                total,
+                applied,
+                shortlisted,
+                rejected
+        );
+    }
+
+    private CompanyProfile getApprovedCompany(Long userId) {
+        if (userId == null) {
+            throw new IllegalArgumentException(
+                    "Authenticated user ID is required."
+            );
+        }
+
+        CompanyProfile company = companyProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Company profile not found."
+                ));
+
+        if (company.getProfileStatus() != CompanyProfileStatus.APPROVED) {
+            throw new IllegalArgumentException(
+                    "Your company profile must be approved to view applications."
+            );
+        }
+
+        return company;
+    }
+
+
 }

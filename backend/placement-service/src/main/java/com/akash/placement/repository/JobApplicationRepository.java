@@ -29,4 +29,15 @@ public interface JobApplicationRepository
     );
 
     List<JobApplication> findAllByOrderByAppliedAtDesc();
+
+    long countByJobId(Long jobId);
+
+    long countByJobIdAndStatus(
+            Long jobId,
+            com.akash.placement.enums.ApplicationStatus status
+    );
+
+    long countByStatus(
+            com.akash.placement.enums.ApplicationStatus status
+    );
 }

@@ -1,8 +1,453 @@
 
-import CompanyApplications from "./CompanyApplications";
+import {
+    useCallback,
+    useEffect,
+    useState,
+} from "react";
+
+import { Link, useParams } from "react-router-dom";
+
+import { useCompanyProfile } from "../../context/CompanyProfileContext";
+import { companyApi } from "../../services/companyApi";
+import StatusBadge from "../../components/company/StatusBadge";
+
+import "./CompanyDashboard.css";
+import "./CompanyApplications.css";
+
+const INITIAL_FILTERS = {
+    search: "",
+    status: "",
+    appliedFrom: "",
+    appliedTo: "",
+};
+
+const STATUSES = [
+    "APPLIED",
+    "UNDER_REVIEW",
+    "SHORTLISTED",
+    "REJECTED",
+    "INTERVIEW_SCHEDULED",
+    "INTERVIEWED",
+    "SELECTED",
+    "HIRED",
+];
+
+function getRecords(result) {
+    if (Array.isArray(result)) return result;
+    if (Array.isArray(result?.applications)) return result.applications;
+    if (Array.isArray(result?.content)) return result.content;
+    return [];
+}
+
+function getApplicationId(item) {
+    return item.id ?? item.applicationId;
+}
+
+function getStudentName(item) {
+    return (
+        item.studentName ??
+        item.fullName ??
+        item.student?.fullName ??
+        item.student?.name ??
+        item.name ??
+        `Student #${item.studentUserId ?? item.studentId ?? "—"}`
+    );
+}
+
+function getStudentEmail(item) {
+    return (
+        item.studentEmail ??
+        item.email ??
+        item.student?.email ??
+        "Email unavailable"
+    );
+}
+
+function getStatus(item) {
+    return String(item.status ?? "APPLIED").toUpperCase();
+}
+
+function formatDate(value) {
+    if (!value) return "—";
+
+    const date = new Date(value);
+
+    return Number.isNaN(date.getTime())
+        ? "—"
+        : date.toLocaleString();
+}
 
 function CompanyJobApplicants() {
-    return <CompanyApplications />;
+    const { jobId } = useParams();
+    const { profile } = useCompanyProfile();
+
+    const approved = profile?.profileStatus === "APPROVED";
+
+    const [job, setJob] = useState(null);
+    const [applications, setApplications] = useState([]);
+    const [stats, setStats] = useState({
+        total: 0,
+        applied: 0,
+        shortlisted: 0,
+        rejected: 0,
+    });
+
+    const [filters, setFilters] = useState(INITIAL_FILTERS);
+    const [showFilters, setShowFilters] = useState(true);
+    const [loading, setLoading] = useState(true);
+    const [statsLoading, setStatsLoading] = useState(true);
+    const [error, setError] = useState("");
+    const [statsError, setStatsError] = useState("");
+
+    const loadJob = useCallback(async () => {
+        if (!approved || !jobId) return;
+
+        try {
+            const result = await companyApi.getMyJob(jobId);
+            setJob(result?.job ?? result);
+        } catch (err) {
+            setError(err.message || "Unable to load job details.");
+        }
+    }, [approved, jobId]);
+
+    const loadApplications = useCallback(async () => {
+        if (!approved || !jobId) {
+            setApplications([]);
+            setLoading(false);
+            return;
+        }
+
+        setLoading(true);
+        setError("");
+
+        try {
+            const result = await companyApi.getJobApplications(jobId, filters);
+            setApplications(getRecords(result));
+        } catch (err) {
+            setError(err.message || "Unable to load job applicants.");
+            setApplications([]);
+        } finally {
+            setLoading(false);
+        }
+    }, [approved, jobId, filters]);
+
+    const loadStats = useCallback(async () => {
+        if (!approved || !jobId) {
+            setStatsLoading(false);
+            return;
+        }
+
+        setStatsLoading(true);
+        setStatsError("");
+
+        try {
+            const result = await companyApi.getJobApplicationStats(jobId);
+
+            setStats({
+                total: Number(result?.total ?? 0),
+                applied: Number(result?.applied ?? 0),
+                shortlisted: Number(result?.shortlisted ?? 0),
+                rejected: Number(result?.rejected ?? 0),
+            });
+        } catch (err) {
+            setStatsError(
+                err.message || "Unable to load job statistics."
+            );
+        } finally {
+            setStatsLoading(false);
+        }
+    }, [approved, jobId]);
+
+    useEffect(() => {
+        loadJob();
+    }, [loadJob]);
+
+    useEffect(() => {
+        loadApplications();
+    }, [loadApplications]);
+
+    useEffect(() => {
+        loadStats();
+    }, [loadStats]);
+
+    function updateFilter(event) {
+        const { name, value } = event.target;
+
+        setFilters((previous) => ({
+            ...previous,
+            [name]: value,
+        }));
+    }
+
+    function clearFilters() {
+        setFilters({ ...INITIAL_FILTERS });
+    }
+
+    async function refresh() {
+        await Promise.all([loadJob(), loadApplications(), loadStats()]);
+    }
+
+    if (!approved) {
+        return (
+            <section className="company-profile-page">
+                <div className="company-page-state">
+                    <h1>Job applicants are locked</h1>
+                    <p>
+                        Your company profile must be approved before you
+                        can manage student applications.
+                    </p>
+                    <StatusBadge status={profile?.profileStatus} />
+                    <Link
+                        to="/company/profile"
+                        className="company-button primary"
+                    >
+                        View Company Profile
+                    </Link>
+                </div>
+            </section>
+        );
+    }
+
+    return (
+        <section className="company-profile-page">
+            <div className="company-page-title">
+                <div>
+                    <span className="company-kicker">JOB RECRUITMENT</span>
+                    <h1>Job Applicants</h1>
+                    <p>
+                        Review applicants for{" "}
+                        <strong>{job?.title ?? `Job #${jobId}`}</strong>.
+                    </p>
+                </div>
+
+                <div className="company-application-header-actions">
+                    <Link to="/company/jobs" className="company-button">
+                        Back to Jobs
+                    </Link>
+
+                    <button
+                        type="button"
+                        className="company-button"
+                        onClick={refresh}
+                        disabled={loading || statsLoading}
+                    >
+                        Refresh
+                    </button>
+                </div>
+            </div>
+
+            <div className="selected-job-banner">
+                <div>
+                    <span>APPLICANTS FOR</span>
+                    <h2>{job?.title ?? `Job #${jobId}`}</h2>
+                    <p>
+                        Job ID: {jobId}
+                        {job?.location ? ` · ${job.location}` : ""}
+                    </p>
+                </div>
+
+                <Link
+                    to="/company/applications"
+                    className="company-button"
+                >
+                    All Applications
+                </Link>
+            </div>
+
+            {error && (
+                <div className="company-alert error" role="alert">
+                    {error}
+                </div>
+            )}
+
+            {statsError && (
+                <div className="company-alert error" role="alert">
+                    {statsError}
+                </div>
+            )}
+
+            <div className="company-application-stats">
+                <article className="company-application-stat">
+                    <span>Total Applicants</span>
+                    <strong>{statsLoading ? "…" : stats.total}</strong>
+                </article>
+
+                <article className="company-application-stat">
+                    <span>New / Applied</span>
+                    <strong>{statsLoading ? "…" : stats.applied}</strong>
+                </article>
+
+                <article className="company-application-stat">
+                    <span>Shortlisted</span>
+                    <strong>{statsLoading ? "…" : stats.shortlisted}</strong>
+                </article>
+
+                <article className="company-application-stat">
+                    <span>Rejected</span>
+                    <strong>{statsLoading ? "…" : stats.rejected}</strong>
+                </article>
+            </div>
+
+            <section className="company-application-filters">
+                <div className="company-application-filter-heading">
+                    <div>
+                        <h2>Search and Filter Applicants</h2>
+                        <p>
+                            Filter applicants for this job by student,
+                            status, or application date.
+                        </p>
+                    </div>
+
+                    <div className="company-application-filter-actions">
+                        <button
+                            type="button"
+                            className="company-button company-filter-toggle"
+                            onClick={() =>
+                                setShowFilters((previous) => !previous)
+                            }
+                            aria-expanded={showFilters}
+                        >
+                            {showFilters ? "Hide Filters ▲" : "Show Filters ▼"}
+                        </button>
+
+                        <button
+                            type="button"
+                            className="company-button"
+                            onClick={clearFilters}
+                        >
+                            Clear Filters
+                        </button>
+                    </div>
+                </div>
+
+                {showFilters && (
+                    <div className="company-application-filter-grid">
+                        <label>
+                            Student, email, or application ID
+                            <input
+                                name="search"
+                                value={filters.search}
+                                onChange={updateFilter}
+                                placeholder="Search applicants..."
+                            />
+                        </label>
+
+                        <label>
+                            Application status
+                            <select
+                                name="status"
+                                value={filters.status}
+                                onChange={updateFilter}
+                            >
+                                <option value="">All statuses</option>
+                                {STATUSES.map((status) => (
+                                    <option key={status} value={status}>
+                                        {status.replaceAll("_", " ")}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+
+                        <label>
+                            Applied from
+                            <input
+                                type="date"
+                                name="appliedFrom"
+                                value={filters.appliedFrom}
+                                onChange={updateFilter}
+                                max={filters.appliedTo || undefined}
+                            />
+                        </label>
+
+                        <label>
+                            Applied to
+                            <input
+                                type="date"
+                                name="appliedTo"
+                                value={filters.appliedTo}
+                                onChange={updateFilter}
+                                min={filters.appliedFrom || undefined}
+                            />
+                        </label>
+                    </div>
+                )}
+
+                <div className="company-application-filter-footer">
+                    <span>
+                        {loading
+                            ? "Loading applicants..."
+                            : `Showing ${applications.length} filtered applicants`}
+                    </span>
+                </div>
+            </section>
+
+            {loading ? (
+                <div className="company-page-loading">
+                    Loading applicants...
+                </div>
+            ) : applications.length === 0 ? (
+                <div className="company-empty-state">
+                    <h3>No applicants found</h3>
+                    <p>
+                        There are no applications matching these filters
+                        for this job.
+                    </p>
+                    <button
+                        type="button"
+                        className="company-button"
+                        onClick={clearFilters}
+                    >
+                        Clear Filters
+                    </button>
+                </div>
+            ) : (
+                <div className="company-application-list">
+                    {applications.map((item) => {
+                        const id = getApplicationId(item);
+
+                        return (
+                            <article
+                                className="company-application-card"
+                                key={id}
+                            >
+                                <div className="company-application-card-main">
+                                    <div className="company-application-avatar">
+                                        {getStudentName(item).charAt(0).toUpperCase()}
+                                    </div>
+
+                                    <div className="company-application-person">
+                                        <h3>{getStudentName(item)}</h3>
+                                        <p>{getStudentEmail(item)}</p>
+                                        <p>Application ID: {id ?? "—"}</p>
+                                        <p>
+                                            Applied: {formatDate(item.appliedAt)}
+                                        </p>
+
+                                        {item.statusRemarks && (
+                                            <p>Remarks: {item.statusRemarks}</p>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="company-application-card-actions">
+                                    <StatusBadge status={getStatus(item)} />
+
+                                    {id != null && (
+                                        <Link
+                                            to={`/company/applications/${id}`}
+                                            className="company-button primary"
+                                        >
+                                            View Candidate
+                                        </Link>
+                                    )}
+                                </div>
+                            </article>
+                        );
+                    })}
+                </div>
+            )}
+        </section>
+    );
 }
 
 export default CompanyJobApplicants;

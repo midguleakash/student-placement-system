@@ -65,6 +65,63 @@ function getStudentEmail(item) {
     );
 }
 
+
+function filterApplications(applications, filters) {
+    const search = String(filters.search ?? "")
+        .trim()
+        .toLowerCase();
+
+    return applications.filter((item) => {
+        const searchableText = [
+            getStudentName(item),
+            getStudentEmail(item),
+            getApplicationId(item),
+            getJobTitle?.(item) ?? item.jobTitle ?? item.job?.title ?? "",
+            getStatus(item),
+        ]
+            .filter((value) => value != null)
+            .join(" ")
+            .toLowerCase();
+
+        const matchesSearch =
+            search === "" || searchableText.includes(search);
+
+        const status = getStatus(item);
+
+        const matchesStatus =
+            !filters.status || status === filters.status;
+
+        const appliedDate = item.appliedAt
+            ? new Date(item.appliedAt)
+            : null;
+
+        const validDate =
+            appliedDate && !Number.isNaN(appliedDate.getTime());
+
+        const matchesFrom =
+            !filters.appliedFrom ||
+            (validDate &&
+                appliedDate >= new Date(
+                    `${filters.appliedFrom}T00:00:00`
+                ));
+
+        const matchesTo =
+            !filters.appliedTo ||
+            (validDate &&
+                appliedDate <= new Date(
+                    `${filters.appliedTo}T23:59:59.999`
+                ));
+
+        return (
+            matchesSearch &&
+            matchesStatus &&
+            matchesFrom &&
+            matchesTo
+        );
+    });
+}
+
+
 function getStatus(item) {
     return String(item.status ?? "APPLIED").toUpperCase();
 }
@@ -99,6 +156,11 @@ function CompanyApplications() {
     });
 
     const [filters, setFilters] = useState(INITIAL_FILTERS);
+
+    const filteredApplications = useMemo(
+        () => filterApplications(applications, filters),
+        [applications, filters]
+    );
     const [showFilters, setShowFilters] = useState(true);
     const [loading, setLoading] = useState(true);
     const [statsLoading, setStatsLoading] = useState(true);
@@ -116,7 +178,7 @@ function CompanyApplications() {
         setError("");
 
         try {
-            const result = await companyApi.getMyApplications(filters);
+            const result = await companyApi.getMyApplications();
             setApplications(getRecords(result));
         } catch (err) {
             setError(err.message || "Unable to load applications.");
@@ -124,7 +186,7 @@ function CompanyApplications() {
         } finally {
             setLoading(false);
         }
-    }, [approved, filters]);
+    }, [approved]);
 
     const loadStats = useCallback(async () => {
         if (!approved) {
@@ -354,7 +416,7 @@ function CompanyApplications() {
                     <span>
                         {loading
                             ? "Loading applications..."
-                            : `Showing ${applications.length} filtered applications`}
+                            : `Showing ${filteredApplications.length} filtered applications`}
                     </span>
                 </div>
             </section>
@@ -363,7 +425,7 @@ function CompanyApplications() {
                 <div className="company-page-loading">
                     Loading applications...
                 </div>
-            ) : applications.length === 0 ? (
+            ) : filteredApplications.length === 0 ? (
                 <div className="company-empty-state">
                     <h3>No applications found</h3>
                     <p>
@@ -380,7 +442,7 @@ function CompanyApplications() {
                 </div>
             ) : (
                 <div className="company-application-list">
-                    {applications.map((item) => {
+                    {filteredApplications.map((item) => {
                         const id = getApplicationId(item);
                         const jobId = getJobId(item);
 

@@ -1,0 +1,34 @@
+
+.round-decision-form {
+    display: grid;
+    gap: 16px;
+    width: 100%;
+}
+
+.round-decision-form label {
+    display: grid;
+    gap: 7px;
+    font-weight: 600;
+}
+
+.round-decision-form input,
+.round-decision-form select,
+.round-decision-form textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font: inherit;
+}
+
+.round-decision-form textarea {
+    resize: vertical;
+}
+
+.round-decision-form input:focus,
+.round-decision-form select:focus,
+.round-decision-form textarea:focus {
+    outline: 2px solid #93c5fd;
+    outline-offset: 1px;
+}

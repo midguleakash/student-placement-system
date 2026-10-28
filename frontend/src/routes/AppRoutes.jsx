@@ -23,6 +23,7 @@ import CompanyJobForm from "../pages/company/CompanyJobForm";
 import CompanyCandidateDetails from "../pages/company/CompanyCandidateDetails";
 import CompanyRoundOne from "../pages/company/CompanyRoundOne";
 import CompanyJobApplicants from "../pages/company/CompanyJobApplicants";
+import CompanyRoundTwo from "../pages/company/CompanyRoundTwo";
 
 
 import AdminDashboard from "../pages/admin/AdminDashboard";
@@ -150,6 +151,11 @@ function AppRoutes() {
                         <Route
                             path="applications/:applicationId/rounds/1"
                             element={<CompanyRoundOne />}
+                        />
+
+                        <Route
+                            path="applications/:applicationId/rounds/2"
+                            element={<CompanyRoundTwo />}
                         />
 
                     </Route>

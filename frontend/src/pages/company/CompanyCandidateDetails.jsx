@@ -219,7 +219,12 @@ function CompanyCandidateDetails() {
                         <h3>Round 2 — Technical Interview</h3>
                         <p>Available after Round 1 is shortlisted and the next-round workflow is implemented.</p>
                     </div>
-                    <span className="candidate-coming-soon">Coming next</span>
+                    <Link
+                        to={`/company/applications/${applicationId}/rounds/2`}
+                        className="company-button"
+                    >
+                        Open Round 2 — Technical Interview
+                    </Link>
                 </div>
 
                 <div className="candidate-round-item candidate-round-disabled">

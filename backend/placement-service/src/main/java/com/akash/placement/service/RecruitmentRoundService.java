@@ -212,4 +212,130 @@ public class RecruitmentRoundService {
             );
         }
     }
+
+    @Transactional
+    public RecruitmentRound createRoundTwo(Long applicationId, Long companyUserId) {
+
+        CompanyProfile company = getApprovedCompany(companyUserId);
+        JobApplication application = getApplication(applicationId);
+        Job job = getJob(application.getJobId());
+
+        verifyJobOwnership(job, company);
+
+        if (application.getStatus() == ApplicationStatus.REJECTED
+                || application.getStatus() == ApplicationStatus.SELECTED
+                || application.getStatus() == ApplicationStatus.HIRED) {
+            throw new IllegalStateException(
+                    "This application cannot proceed to Round 2."
+            );
+        }
+
+        RecruitmentRound roundOne = recruitmentRoundRepository
+                .findByApplication_IdAndRoundNumber(applicationId, 1)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Round 1 must be completed before starting Round 2."
+                ));
+
+        if (roundOne.getStatus() != RecruitmentRoundStatus.SHORTLISTED) {
+            throw new IllegalStateException(
+                    "The candidate must be shortlisted in Round 1."
+            );
+        }
+
+        return recruitmentRoundRepository
+                .findByApplication_IdAndRoundNumber(applicationId, 2)
+                .orElseGet(() -> recruitmentRoundRepository.save(
+                        new RecruitmentRound(
+                                application,
+                                2,
+                                "Technical Interview"
+                        )
+                ));
+    }
+
+
+
+    @Transactional
+    public RecruitmentRound decideRoundTwo(
+            Long applicationId,
+            Long companyUserId,
+            RecruitmentRoundStatus decision,
+            String feedback,
+            BigDecimal score
+    ) {
+        CompanyProfile company = getApprovedCompany(companyUserId);
+        JobApplication application = getApplication(applicationId);
+        Job job = getJob(application.getJobId());
+
+        verifyJobOwnership(job, company);
+
+        if (application.getStatus() == ApplicationStatus.REJECTED
+                || application.getStatus() == ApplicationStatus.SELECTED
+                || application.getStatus() == ApplicationStatus.HIRED) {
+            throw new IllegalStateException(
+                    "This application is already closed."
+            );
+        }
+
+        if (decision != RecruitmentRoundStatus.SHORTLISTED
+                && decision != RecruitmentRoundStatus.REJECTED) {
+            throw new IllegalArgumentException(
+                    "Decision must be SHORTLISTED or REJECTED."
+            );
+        }
+
+        if (score != null
+                && (score.compareTo(BigDecimal.ZERO) < 0
+                || score.compareTo(new BigDecimal("100")) > 0)) {
+            throw new IllegalArgumentException(
+                    "Score must be between 0 and 100."
+            );
+        }
+
+        RecruitmentRound roundOne = recruitmentRoundRepository
+                .findByApplication_IdAndRoundNumber(applicationId, 1)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Round 1 does not exist."
+                ));
+
+        if (roundOne.getStatus() != RecruitmentRoundStatus.SHORTLISTED) {
+            throw new IllegalStateException(
+                    "The candidate has not passed Round 1."
+            );
+        }
+
+        RecruitmentRound roundTwo = recruitmentRoundRepository
+                .findByApplication_IdAndRoundNumber(applicationId, 2)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Start Round 2 before recording its decision."
+                ));
+
+        if (roundTwo.getStatus() == RecruitmentRoundStatus.REJECTED
+                || roundTwo.getStatus() == RecruitmentRoundStatus.COMPLETED) {
+            throw new IllegalStateException(
+                    "Round 2 has already been completed or rejected."
+            );
+        }
+
+        roundTwo.setStatus(decision);
+        roundTwo.setFeedback(feedback);
+        roundTwo.setScore(score);
+        roundTwo.setEvaluatedBy(companyUserId);
+        roundTwo.setEvaluatedAt(LocalDateTime.now());
+
+        RecruitmentRound savedRound =
+                recruitmentRoundRepository.save(roundTwo);
+
+        if (decision == RecruitmentRoundStatus.REJECTED) {
+            application.setStatus(ApplicationStatus.REJECTED);
+            application.setStatusRemarks(feedback);
+        } else {
+            application.setStatus(ApplicationStatus.INTERVIEWED);
+            application.setStatusRemarks(feedback);
+        }
+
+        jobApplicationRepository.save(application);
+
+        return savedRound;
+    }
 }

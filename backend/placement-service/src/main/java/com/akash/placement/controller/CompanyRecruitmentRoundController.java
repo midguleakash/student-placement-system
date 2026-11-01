@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -24,6 +25,26 @@ public class CompanyRecruitmentRoundController {
     public CompanyRecruitmentRoundController(
             RecruitmentRoundService recruitmentRoundService) {
         this.recruitmentRoundService = recruitmentRoundService;
+    }
+
+    @GetMapping("/{applicationId}/rounds")
+    public ResponseEntity<?> getRecruitmentRounds(
+            @PathVariable Long applicationId,
+            HttpServletRequest request
+    ) {
+        Long companyUserId = getAuthenticatedUserId(request);
+
+        List<RecruitmentRound> rounds =
+                recruitmentRoundService.getRounds(
+                        applicationId,
+                        companyUserId
+                );
+
+        return ResponseEntity.ok(
+                rounds.stream()
+                        .map(this::roundResponse)
+                        .toList()
+        );
     }
 
     @PostMapping("/{applicationId}/rounds/1")
@@ -96,5 +117,42 @@ public class CompanyRecruitmentRoundController {
                         ? ""
                         : round.getEvaluatedAt()
         );
+    }
+
+    @PostMapping("/{applicationId}/rounds/2")
+    public ResponseEntity<?> createRoundTwo(
+            @PathVariable Long applicationId,
+            HttpServletRequest request
+    ) {
+        Long companyUserId = getAuthenticatedUserId(request);
+
+        RecruitmentRound round =
+                recruitmentRoundService.createRoundTwo(
+                        applicationId,
+                        companyUserId
+                );
+
+        return ResponseEntity.ok(roundResponse(round));
+    }
+
+
+    @PutMapping("/{applicationId}/rounds/2/decision")
+    public ResponseEntity<?> decideRoundTwo(
+            @PathVariable Long applicationId,
+            @Valid @RequestBody RoundOneDecisionRequest body,
+            HttpServletRequest request
+    ) {
+        Long companyUserId = getAuthenticatedUserId(request);
+
+        RecruitmentRound round =
+                recruitmentRoundService.decideRoundTwo(
+                        applicationId,
+                        companyUserId,
+                        body.decision(),
+                        body.feedback(),
+                        body.score()
+                );
+
+        return ResponseEntity.ok(roundResponse(round));
     }
 }

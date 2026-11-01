@@ -179,4 +179,33 @@ export const companyApi = {
         );
     },
 
+
+    // Round 2 - Technical Interview
+    createRoundTwo(applicationId) {
+        return request(
+            `/api/company/applications/${applicationId}/rounds/2`,
+            {
+                method: "POST",
+            }
+        );
+    },
+
+    decideRoundTwo(applicationId, decision) {
+        return request(
+            `/api/company/applications/${applicationId}/rounds/2/decision`,
+            {
+                method: "PUT",
+                body: JSON.stringify(decision),
+            }
+        );
+    },
+
+    // Recruitment progress
+    getRecruitmentRounds(applicationId) {
+        return request(
+            `/api/company/applications/${applicationId}/rounds`
+        );
+    },
+
+
 };

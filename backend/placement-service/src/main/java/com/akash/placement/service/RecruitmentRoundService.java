@@ -19,6 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class RecruitmentRoundService {
@@ -225,20 +226,24 @@ public class RecruitmentRoundService {
         if (application.getStatus() == ApplicationStatus.REJECTED
                 || application.getStatus() == ApplicationStatus.SELECTED
                 || application.getStatus() == ApplicationStatus.HIRED) {
-            throw new IllegalStateException(
-                    "This application cannot proceed to Round 2."
+
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "This application is closed and cannot proceed to Round 2."
             );
         }
 
         RecruitmentRound roundOne = recruitmentRoundRepository
                 .findByApplication_IdAndRoundNumber(applicationId, 1)
-                .orElseThrow(() -> new IllegalStateException(
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
                         "Round 1 must be completed before starting Round 2."
                 ));
 
         if (roundOne.getStatus() != RecruitmentRoundStatus.SHORTLISTED) {
-            throw new IllegalStateException(
-                    "The candidate must be shortlisted in Round 1."
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "The candidate must pass Round 1 before starting Round 2."
             );
         }
 
@@ -337,5 +342,22 @@ public class RecruitmentRoundService {
         jobApplicationRepository.save(application);
 
         return savedRound;
+    }
+
+    @Transactional(readOnly = true)
+    public List<RecruitmentRound> getRounds(
+            Long applicationId,
+            Long companyUserId
+    ) {
+        CompanyProfile company = getApprovedCompany(companyUserId);
+
+        JobApplication application = getApplication(applicationId);
+
+        Job job = getJob(application.getJobId());
+
+        verifyJobOwnership(job, company);
+
+        return recruitmentRoundRepository
+                .findByApplication_IdOrderByRoundNumberAsc(applicationId);
     }
 }

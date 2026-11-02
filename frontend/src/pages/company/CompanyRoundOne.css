@@ -1,14 +1,20 @@
-
 .round-decision-form {
     display: grid;
     gap: 16px;
     width: 100%;
 }
 
+.round-decision-form h2 {
+    margin: 0 0 4px;
+    font-size: 1.5rem;
+    color: #111827;
+}
+
 .round-decision-form label {
     display: grid;
     gap: 7px;
     font-weight: 600;
+    color: #374151;
 }
 
 .round-decision-form input,
@@ -16,19 +22,61 @@
 .round-decision-form textarea {
     width: 100%;
     box-sizing: border-box;
-    padding: 10px 12px;
+    padding: 11px 12px;
     border: 1px solid #d1d5db;
     border-radius: 8px;
+    background-color: #fff;
+    color: #111827;
     font: inherit;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .round-decision-form textarea {
+    min-height: 110px;
     resize: vertical;
 }
 
 .round-decision-form input:focus,
 .round-decision-form select:focus,
 .round-decision-form textarea:focus {
-    outline: 2px solid #93c5fd;
-    outline-offset: 1px;
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgb(79 70 229 / 15%);
+}
+
+.round-decision-form input:disabled,
+.round-decision-form select:disabled,
+.round-decision-form textarea:disabled {
+    background-color: #f3f4f6;
+    cursor: not-allowed;
+}
+
+.round-decision-form p {
+    margin: 0;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+.round-decision-form button {
+    justify-self: start;
+}
+
+.round-decision-form button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+    .round-decision-form {
+        gap: 12px;
+    }
+
+    .round-decision-form h2 {
+        font-size: 1.25rem;
+    }
+
+    .round-decision-form button {
+        width: 100%;
+        justify-self: stretch;
+    }
 }

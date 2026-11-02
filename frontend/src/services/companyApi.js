@@ -153,25 +153,32 @@ export const companyApi = {
 
 
 
-    // Round 1 resume screening
+    // ---------------- RECRUITMENT ROUNDS ----------------
+
+    // Fetch round history and current status
+    getApplicationRounds(applicationId) {
+        return request(
+            `/api/company/applications/${encodeURIComponent(applicationId)}/rounds`
+        );
+    },
+
+    // Round 1 — Resume Screening
     getApplicationScreening(applicationId) {
         return request(
-            `/api/company/applications/${applicationId}/screening`
+            `/api/company/applications/${encodeURIComponent(applicationId)}/screening`
         );
     },
 
     createRoundOne(applicationId) {
         return request(
-            `/api/company/applications/${applicationId}/rounds/1`,
-            {
-                method: "POST",
-            }
+            `/api/company/applications/${encodeURIComponent(applicationId)}/rounds/1`,
+            { method: "POST" }
         );
     },
 
     decideRoundOne(applicationId, decision) {
         return request(
-            `/api/company/applications/${applicationId}/rounds/1/decision`,
+            `/api/company/applications/${encodeURIComponent(applicationId)}/rounds/1/decision`,
             {
                 method: "PUT",
                 body: JSON.stringify(decision),
@@ -179,20 +186,17 @@ export const companyApi = {
         );
     },
 
-
-    // Round 2 - Technical Interview
+    // Round 2 — Technical Interview
     createRoundTwo(applicationId) {
         return request(
-            `/api/company/applications/${applicationId}/rounds/2`,
-            {
-                method: "POST",
-            }
+            `/api/company/applications/${encodeURIComponent(applicationId)}/rounds/2`,
+            { method: "POST" }
         );
     },
 
     decideRoundTwo(applicationId, decision) {
         return request(
-            `/api/company/applications/${applicationId}/rounds/2/decision`,
+            `/api/company/applications/${encodeURIComponent(applicationId)}/rounds/2/decision`,
             {
                 method: "PUT",
                 body: JSON.stringify(decision),
@@ -200,12 +204,22 @@ export const companyApi = {
         );
     },
 
-    // Recruitment progress
-    getRecruitmentRounds(applicationId) {
+    // Round 3 — HR Interview
+    createRoundThree(applicationId) {
         return request(
-            `/api/company/applications/${applicationId}/rounds`
+            `/api/company/applications/${encodeURIComponent(applicationId)}/rounds/3`,
+            { method: "POST" }
         );
     },
 
+    decideRoundThree(applicationId, decision) {
+        return request(
+            `/api/company/applications/${encodeURIComponent(applicationId)}/rounds/3/decision`,
+            {
+                method: "PUT",
+                body: JSON.stringify(decision),
+            }
+        );
+    },
 
 };

@@ -1,17 +1,22 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-
 import { companyApi } from "../../services/companyApi";
 import { useCompanyProfile } from "../../context/CompanyProfileContext";
 import StatusBadge from "../../components/company/StatusBadge";
 
-import "./CompanyDashboard.css";
 import "./CompanyRoundOne.css";
 
 function getRecords(result) {
     if (Array.isArray(result)) return result;
     if (Array.isArray(result?.applications)) return result.applications;
+    if (Array.isArray(result?.content)) return result.content;
+    return [];
+}
+
+function getRounds(result) {
+    if (Array.isArray(result)) return result;
+    if (Array.isArray(result?.rounds)) return result.rounds;
     if (Array.isArray(result?.content)) return result.content;
     return [];
 }
@@ -26,9 +31,12 @@ function CompanyRoundOne() {
 
     const [application, setApplication] = useState(null);
     const [screening, setScreening] = useState(null);
+    const [round, setRound] = useState(null);
+
     const [decision, setDecision] = useState("SHORTLISTED");
     const [feedback, setFeedback] = useState("");
     const [score, setScore] = useState("");
+
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
@@ -44,10 +52,15 @@ function CompanyRoundOne() {
 
         setLoading(true);
         setError("");
-        setMessage("");
 
         try {
-            const applicationsResult = await companyApi.getMyApplications();
+            const [applicationsResult, screeningResult, roundsResult] =
+                await Promise.all([
+                    companyApi.getMyApplications(),
+                    companyApi.getApplicationScreening(applicationId),
+                    companyApi.getApplicationRounds(applicationId),
+                ]);
+
             const applications = getRecords(applicationsResult);
 
             const found = applications.find(
@@ -61,14 +74,29 @@ function CompanyRoundOne() {
                 );
             }
 
+            const rounds = getRounds(roundsResult);
+            const savedRound = rounds.find(
+                item => Number(item.roundNumber) === 1
+            );
+
             setApplication(found);
-
-            const screeningResult =
-                await companyApi.getApplicationScreening(applicationId);
-
             setScreening(screeningResult);
+            setRound(savedRound || null);
 
-            if (screeningResult?.matchScore != null) {
+            if (savedRound) {
+                setDecision(
+                    ["SHORTLISTED", "REJECTED"].includes(savedRound.status)
+                        ? savedRound.status
+                        : "SHORTLISTED"
+                );
+
+                setFeedback(savedRound.feedback || "");
+                setScore(
+                    savedRound.score == null
+                        ? ""
+                        : String(savedRound.score)
+                );
+            } else if (screeningResult?.matchScore != null) {
                 setScore(String(screeningResult.matchScore));
             }
         } catch (err) {
@@ -82,22 +110,28 @@ function CompanyRoundOne() {
         loadPage();
     }, [loadPage]);
 
+    const roundStatus = String(round?.status || "").toUpperCase();
+
+    const evaluated = ["SHORTLISTED", "REJECTED", "COMPLETED"].includes(
+        roundStatus
+    );
+
+    const terminal = ["REJECTED", "SELECTED", "HIRED"].includes(
+        String(application?.status || "").toUpperCase()
+    );
+
     async function submitDecision(event) {
         event.preventDefault();
         setError("");
         setMessage("");
 
         if (!application || !screening) {
-            setError("Load the candidate's screening result first.");
+            setError("Resume screening information is unavailable.");
             return;
         }
 
-        if (
-            application.status === "REJECTED" ||
-            application.status === "SELECTED" ||
-            application.status === "HIRED"
-        ) {
-            setError("This application has already reached a terminal status.");
+        if (evaluated || terminal) {
+            setError("This application has already been evaluated or closed.");
             return;
         }
 
@@ -130,7 +164,7 @@ function CompanyRoundOne() {
 
             setMessage(
                 decision === "SHORTLISTED"
-                    ? "Candidate shortlisted for the next round."
+                    ? "Candidate shortlisted for Round 2."
                     : "Candidate rejected at resume screening."
             );
 
@@ -175,9 +209,6 @@ function CompanyRoundOne() {
         );
     }
 
-    const terminal =
-        ["REJECTED", "SELECTED", "HIRED"].includes(application.status);
-
     return (
         <section className="company-profile-page">
             <div className="company-page-title">
@@ -221,14 +252,11 @@ function CompanyRoundOne() {
                     </p>
                     <p>Application ID: {applicationId}</p>
                 </div>
+
                 <StatusBadge status={application.status} />
             </section>
 
-            {!screening ? (
-                <div className="company-empty-state">
-                    Screening information is unavailable.
-                </div>
-            ) : (
+            {screening ? (
                 <>
                     <section className="company-data-row">
                         <div>
@@ -239,9 +267,7 @@ function CompanyRoundOne() {
                             </p>
                             <p>
                                 Skill match score:{" "}
-                                <strong>
-                                    {screening.matchScore ?? 0}%
-                                </strong>
+                                <strong>{screening.matchScore ?? 0}%</strong>
                             </p>
                             <p>
                                 Eligibility:{" "}
@@ -260,17 +286,15 @@ function CompanyRoundOne() {
                             {screening.reasons?.length ? (
                                 <ul>
                                     {screening.reasons.map((reason, index) => (
-                                        <li key={`${reason}-${index}`}>{reason}</li>
+                                        <li key={`${reason}-${index}`}>
+                                            {reason}
+                                        </li>
                                     ))}
                                 </ul>
                             ) : (
                                 <p>No eligibility issues reported.</p>
                             )}
-                        </div>
-                    </section>
 
-                    <section className="company-data-row">
-                        <div>
                             <h3>Skills Found in Profile</h3>
                             {screening.matchedProfile?.length ? (
                                 <ul>
@@ -306,16 +330,37 @@ function CompanyRoundOne() {
                         </div>
                     </section>
                 </>
+            ) : (
+                <div className="company-empty-state">
+                    Screening information is unavailable.
+                </div>
             )}
 
             <section className="company-data-row">
-                <form onSubmit={submitDecision} className="round-decision-form">
-                    <h2>Record Round 1 Decision</h2>
+                <form
+                    onSubmit={submitDecision}
+                    className="round-decision-form"
+                >
+                    <h2>Round 1 Decision</h2>
 
-                    {terminal ? (
+                    {evaluated ? (
+                        <>
+                            <p>
+                                Decision saved: <strong>{roundStatus}</strong>
+                            </p>
+                            <p>
+                                Score: <strong>{round?.score ?? "Not recorded"}</strong>
+                            </p>
+                            <p>
+                                Feedback:{" "}
+                                <strong>{round?.feedback || "No feedback recorded."}</strong>
+                            </p>
+                            <p>This round cannot be evaluated again.</p>
+                        </>
+                    ) : terminal ? (
                         <p>
-                            This application is already in a terminal status.
-                            A new Round 1 decision cannot be submitted.
+                            This application is closed. No further decisions
+                            can be submitted.
                         </p>
                     ) : (
                         <>
@@ -369,6 +414,15 @@ function CompanyRoundOne() {
                             </button>
                         </>
                     )}
+
+                    <button
+                        type="button"
+                        className="company-button"
+                        onClick={loadPage}
+                        disabled={saving || loading}
+                    >
+                        Refresh Round Status
+                    </button>
                 </form>
             </section>
         </section>

@@ -1,460 +1,479 @@
-
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { adminApi } from "../../services/adminApi";
-import "./AdminStudents.css";
+import "./AdminJobs.css";
 
-const INITIAL_FILTERS = {
-    search: "",
-    company: "",
-    jobTitle: "",
-    status: "",
-    dateFrom: "",
-    dateTo: "",
-};
-
-const STATUSES = [
-    "APPLIED",
-    "UNDER_REVIEW",
-    "SHORTLISTED",
-    "REJECTED",
-    "INTERVIEW_SCHEDULED",
-    "INTERVIEWED",
-    "SELECTED",
-    "HIRED",
-];
-
-function includesText(value, search) {
-    return String(value ?? "")
-        .toLowerCase()
-        .includes(search.trim().toLowerCase());
+function getValue(...values) {
+    return values.find(
+        value => value !== undefined && value !== null && value !== ""
+    );
 }
 
-function formatStatus(status) {
-    if (!status) return "Unknown";
-
-    return status
-        .toLowerCase()
-        .split("_")
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" ");
+function getJobTitle(job) {
+    return getValue(job.jobTitle, job.title, job.position, job.role, "Untitled Job");
 }
 
-function formatDate(value) {
-    if (!value) return "—";
-
-    const date = new Date(value);
-
-    return Number.isNaN(date.getTime())
-        ? String(value)
-        : date.toLocaleString("en-IN");
+function getCompanyName(job) {
+    return getValue(
+        job.companyName,
+        job.company?.companyName,
+        job.company?.name,
+        job.company?.user?.username,
+        job.company?.username,
+        "Company not specified"
+    );
 }
 
-function dateMatches(value, from, to) {
-    if (!from && !to) return true;
-    if (!value) return false;
-
-    const date = String(value).slice(0, 10);
-
-    return (!from || date >= from) && (!to || date <= to);
+function getLocation(job) {
+    return getValue(
+        job.location,
+        job.jobLocation,
+        job.city,
+        job.workLocation,
+        "Not specified"
+    );
 }
 
-export default function AdminApplications() {
-    const [applications, setApplications] = useState([]);
-    const [filters, setFilters] = useState(INITIAL_FILTERS);
-    const [showFilters, setShowFilters] = useState(false);
+function getJobStatus(job) {
+    return String(
+        getValue(job.status, job.jobStatus, job.approvalStatus, "UNKNOWN")
+    ).toUpperCase();
+}
+
+function getEmploymentType(job) {
+    return getValue(
+        job.employmentType,
+        job.jobType,
+        job.type,
+        "Not specified"
+    );
+}
+
+function getPostedDate(job) {
+    return getValue(job.createdAt, job.postedAt, job.createdDate, job.updatedAt);
+}
+
+function formatDate(dateValue) {
+    if (!dateValue) return "Date unavailable";
+
+    const date = new Date(dateValue);
+
+    if (Number.isNaN(date.getTime())) {
+        return "Date unavailable";
+    }
+
+    return date.toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+    });
+}
+
+function formatSalary(job) {
+    const minimum = getValue(job.minSalary, job.salaryMin);
+    const maximum = getValue(job.maxSalary, job.salaryMax);
+    const salary = getValue(job.salary, job.salaryRange, job.ctc);
+
+    if (minimum != null && maximum != null) {
+        return `₹${minimum} - ₹${maximum}`;
+    }
+
+    if (salary != null) {
+        return String(salary);
+    }
+
+    return "Not specified";
+}
+
+function getJobId(job) {
+    return getValue(job.id, job.jobId);
+}
+
+function normalizeJobs(response) {
+    if (Array.isArray(response)) {
+        return response;
+    }
+
+    if (Array.isArray(response?.content)) {
+        return response.content;
+    }
+
+    if (Array.isArray(response?.data)) {
+        return response.data;
+    }
+
+    if (Array.isArray(response?.jobs)) {
+        return response.jobs;
+    }
+
+    return [];
+}
+
+function AdminJobs() {
+    const [jobs, setJobs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
-    const loadApplications = useCallback(async () => {
+    const [search, setSearch] = useState("");
+    const [statusFilter, setStatusFilter] = useState("ALL");
+    const [employmentFilter, setEmploymentFilter] = useState("ALL");
+    const [sortOrder, setSortOrder] = useState("NEWEST");
+
+    const loadJobs = useCallback(async () => {
+        setLoading(true);
+        setError("");
+
         try {
-            setLoading(true);
-            setError("");
-
-            const data = await adminApi.getAllApplications();
-
-            setApplications(Array.isArray(data) ? data : []);
+            const response = await adminApi.getAllJobs();
+            setJobs(normalizeJobs(response));
         } catch (err) {
-            setError(
-                err.message || "Unable to load applications."
-            );
+            setError(err.message || "Unable to load jobs.");
         } finally {
             setLoading(false);
         }
     }, []);
 
     useEffect(() => {
-        loadApplications();
-    }, [loadApplications]);
+        loadJobs();
+    }, [loadJobs]);
 
-    function updateFilter(event) {
-        const { name, value } = event.target;
+    const statusOptions = useMemo(() => {
+        return [
+            ...new Set(jobs.map(getJobStatus)),
+        ].sort();
+    }, [jobs]);
 
-        setFilters((previous) => ({
-            ...previous,
-            [name]: value,
-        }));
-    }
+    const employmentOptions = useMemo(() => {
+        return [
+            ...new Set(
+                jobs.map(job => String(getEmploymentType(job)))
+            ),
+        ].sort();
+    }, [jobs]);
 
-    function resetFilters() {
-        setFilters({ ...INITIAL_FILTERS });
-    }
+    const filteredJobs = useMemo(() => {
+        const searchText = search.trim().toLowerCase();
 
-    const companies = useMemo(
-        () =>
-            [...new Set(
-                applications
-                    .map((application) => application.companyName)
-                    .filter(Boolean)
-            )].sort(),
-        [applications]
-    );
+        const result = jobs.filter(job => {
+            const searchableText = [
+                getJobTitle(job),
+                getCompanyName(job),
+                getLocation(job),
+                getEmploymentType(job),
+                getJobStatus(job),
+            ]
+                .join(" ")
+                .toLowerCase();
 
-    const jobTitles = useMemo(
-        () =>
-            [...new Set(
-                applications
-                    .map((application) => application.jobTitle)
-                    .filter(Boolean)
-            )].sort(),
-        [applications]
-    );
-
-    const filteredApplications = useMemo(() => {
-        return applications.filter((application) => {
-            const matchesSearch =
-                !filters.search ||
-                [
-                    application.id,
-                    application.jobId,
-                    application.studentUserId,
-                    application.studentName,
-                    application.studentEmail,
-                    application.companyName,
-                    application.jobTitle,
-                ].some((value) =>
-                    includesText(value, filters.search)
-                );
-
-            const matchesCompany =
-                !filters.company ||
-                application.companyName === filters.company;
-
-            const matchesJob =
-                !filters.jobTitle ||
-                application.jobTitle === filters.jobTitle;
+            const matchesSearch = searchableText.includes(searchText);
 
             const matchesStatus =
-                !filters.status ||
-                application.status === filters.status;
+                statusFilter === "ALL" ||
+                getJobStatus(job) === statusFilter;
 
-            const matchesFrom = dateMatches(
-                application.appliedAt,
-                filters.dateFrom,
-                ""
-            );
+            const matchesEmployment =
+                employmentFilter === "ALL" ||
+                String(getEmploymentType(job)) === employmentFilter;
 
-            const matchesTo = dateMatches(
-                application.appliedAt,
-                "",
-                filters.dateTo
-            );
-
-            return (
-                matchesSearch &&
-                matchesCompany &&
-                matchesJob &&
-                matchesStatus &&
-                matchesFrom &&
-                matchesTo
-            );
+            return matchesSearch && matchesStatus && matchesEmployment;
         });
-    }, [applications, filters]);
 
-    const countByStatus = (status) =>
-        applications.filter(
-            (application) => application.status === status
-        ).length;
+        return result.sort((a, b) => {
+            const dateA = new Date(getPostedDate(a) || 0).getTime();
+            const dateB = new Date(getPostedDate(b) || 0).getTime();
+
+            return sortOrder === "OLDEST"
+                ? dateA - dateB
+                : dateB - dateA;
+        });
+    }, [jobs, search, statusFilter, employmentFilter, sortOrder]);
+
+    const stats = useMemo(() => {
+        return {
+            total: jobs.length,
+            open: jobs.filter(job =>
+                ["OPEN", "PUBLISHED", "ACTIVE"].includes(getJobStatus(job))
+            ).length,
+            draft: jobs.filter(job =>
+                getJobStatus(job) === "DRAFT"
+            ).length,
+            closed: jobs.filter(job =>
+                ["CLOSED", "EXPIRED"].includes(getJobStatus(job))
+            ).length,
+        };
+    }, [jobs]);
+
+    function resetFilters() {
+        setSearch("");
+        setStatusFilter("ALL");
+        setEmploymentFilter("ALL");
+        setSortOrder("NEWEST");
+    }
 
     return (
-        <div className="admin-applications-page">
-            <div className="admin-applications-heading">
+        <main className="admin-jobs-page">
+            <header className="admin-jobs-header">
                 <div>
-                    <p className="admin-applications-eyebrow">
+                    <span className="admin-jobs-eyebrow">
                         ADMINISTRATION
-                    </p>
-                    <h2>All Applications</h2>
+                    </span>
+
+                    <h1>Job Management</h1>
+
                     <p>
-                        Monitor student applications across all companies
-                        and track recruitment progress.
+                        View and monitor job openings posted by registered
+                        companies.
                     </p>
                 </div>
 
                 <button
                     type="button"
-                    className="admin-applications-refresh"
-                    onClick={loadApplications}
+                    className="admin-jobs-refresh"
+                    onClick={loadJobs}
                     disabled={loading}
                 >
-                    {loading ? "Loading..." : "↻ Refresh"}
+                    {loading ? "Loading..." : "↻ Refresh Jobs"}
                 </button>
-            </div>
+            </header>
 
             {error && (
-                <div className="admin-applications-error" role="alert">
+                <div className="admin-jobs-alert" role="alert">
                     <span>{error}</span>
+
                     <button
                         type="button"
-                        onClick={loadApplications}
+                        onClick={loadJobs}
+                        disabled={loading}
                     >
                         Retry
                     </button>
                 </div>
             )}
 
-            <div className="admin-application-stats">
-                <div className="admin-application-stat">
-                    <span>Total Applications</span>
-                    <strong>{applications.length}</strong>
-                </div>
+            <section className="admin-jobs-stats">
+                <article className="admin-jobs-stat-card">
+                    <span>Total Jobs</span>
+                    <strong>{stats.total}</strong>
+                </article>
 
-                <div className="admin-application-stat">
-                    <span>Under Review</span>
-                    <strong>{countByStatus("UNDER_REVIEW")}</strong>
-                </div>
+                <article className="admin-jobs-stat-card">
+                    <span>Open Jobs</span>
+                    <strong>{stats.open}</strong>
+                </article>
 
-                <div className="admin-application-stat">
-                    <span>Shortlisted</span>
-                    <strong>{countByStatus("SHORTLISTED")}</strong>
-                </div>
+                <article className="admin-jobs-stat-card">
+                    <span>Draft Jobs</span>
+                    <strong>{stats.draft}</strong>
+                </article>
 
-                <div className="admin-application-stat">
-                    <span>Hired</span>
-                    <strong>{countByStatus("HIRED")}</strong>
-                </div>
-            </div>
+                <article className="admin-jobs-stat-card">
+                    <span>Closed Jobs</span>
+                    <strong>{stats.closed}</strong>
+                </article>
+            </section>
 
-            <section className="admin-application-table-panel">
-                <div className="admin-application-table-heading">
+            <section className="admin-jobs-panel">
+                <div className="admin-jobs-panel-heading">
                     <div>
-                        <h3>Application Records</h3>
+                        <h2>All Job Openings</h2>
+
                         <p>
-                            Showing {filteredApplications.length} of{" "}
-                            {applications.length} applications
+                            {loading
+                                ? "Loading job openings..."
+                                : `${filteredJobs.length} of ${jobs.length} jobs`}
                         </p>
+                    </div>
+                </div>
+
+                <div className="admin-jobs-filters">
+                    <div className="admin-jobs-search">
+                        <label htmlFor="admin-job-search">
+                            Search jobs
+                        </label>
+
+                        <input
+                            id="admin-job-search"
+                            type="search"
+                            placeholder="Search title, company, location..."
+                            value={search}
+                            onChange={event => setSearch(event.target.value)}
+                        />
+                    </div>
+
+                    <div className="admin-jobs-filter">
+                        <label htmlFor="admin-job-status">
+                            Job Status
+                        </label>
+
+                        <select
+                            id="admin-job-status"
+                            value={statusFilter}
+                            onChange={event =>
+                                setStatusFilter(event.target.value)
+                            }
+                        >
+                            <option value="ALL">All Statuses</option>
+
+                            {statusOptions.map(status => (
+                                <option key={status} value={status}>
+                                    {status.replaceAll("_", " ")}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="admin-jobs-filter">
+                        <label htmlFor="admin-job-type">
+                            Employment Type
+                        </label>
+
+                        <select
+                            id="admin-job-type"
+                            value={employmentFilter}
+                            onChange={event =>
+                                setEmploymentFilter(event.target.value)
+                            }
+                        >
+                            <option value="ALL">All Types</option>
+
+                            {employmentOptions.map(type => (
+                                <option key={type} value={type}>
+                                    {type}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="admin-jobs-filter">
+                        <label htmlFor="admin-job-sort">
+                            Sort By
+                        </label>
+
+                        <select
+                            id="admin-job-sort"
+                            value={sortOrder}
+                            onChange={event =>
+                                setSortOrder(event.target.value)
+                            }
+                        >
+                            <option value="NEWEST">Newest First</option>
+                            <option value="OLDEST">Oldest First</option>
+                        </select>
                     </div>
 
                     <button
                         type="button"
-                        className="admin-application-filter-toggle"
-                        onClick={() =>
-                            setShowFilters((previous) => !previous)
-                        }
-                        aria-expanded={showFilters}
-                        aria-controls="admin-application-filters"
+                        className="admin-jobs-reset"
+                        onClick={resetFilters}
                     >
-                        {showFilters ? "Hide Filters" : "Show Filters"}
-                        <span>{showFilters ? "▲" : "▼"}</span>
+                        Reset Filters
                     </button>
                 </div>
 
-                {showFilters && (
-                    <section
-                        className="admin-application-filter-panel"
-                        id="admin-application-filters"
-                    >
-                        <div className="admin-application-filter-heading">
-                            <div>
-                                <h3>Search and Filters</h3>
-                                <p>
-                                    Combine filters to narrow down
-                                    application records.
-                                </p>
-                            </div>
-
-                            <button
-                                type="button"
-                                className="admin-application-reset"
-                                onClick={resetFilters}
-                            >
-                                Reset Filters
-                            </button>
-                        </div>
-
-                        <div className="admin-application-filter-grid">
-                            <label>
-                                Search student or application
-                                <input
-                                    name="search"
-                                    value={filters.search}
-                                    onChange={updateFilter}
-                                    placeholder="Student name, email or ID"
-                                />
-                            </label>
-
-                            <label>
-                                Company
-                                <select
-                                    name="company"
-                                    value={filters.company}
-                                    onChange={updateFilter}
-                                >
-                                    <option value="">All companies</option>
-                                    {companies.map((company) => (
-                                        <option
-                                            key={company}
-                                            value={company}
-                                        >
-                                            {company}
-                                        </option>
-                                    ))}
-                                </select>
-                            </label>
-
-                            <label>
-                                Job Title
-                                <select
-                                    name="jobTitle"
-                                    value={filters.jobTitle}
-                                    onChange={updateFilter}
-                                >
-                                    <option value="">All jobs</option>
-                                    {jobTitles.map((job) => (
-                                        <option key={job} value={job}>
-                                            {job}
-                                        </option>
-                                    ))}
-                                </select>
-                            </label>
-
-                            <label>
-                                Application Status
-                                <select
-                                    name="status"
-                                    value={filters.status}
-                                    onChange={updateFilter}
-                                >
-                                    <option value="">All statuses</option>
-                                    {STATUSES.map((status) => (
-                                        <option
-                                            key={status}
-                                            value={status}
-                                        >
-                                            {formatStatus(status)}
-                                        </option>
-                                    ))}
-                                </select>
-                            </label>
-
-                            <label>
-                                Applied From
-                                <input
-                                    type="date"
-                                    name="dateFrom"
-                                    value={filters.dateFrom}
-                                    max={filters.dateTo || undefined}
-                                    onChange={updateFilter}
-                                />
-                            </label>
-
-                            <label>
-                                Applied To
-                                <input
-                                    type="date"
-                                    name="dateTo"
-                                    value={filters.dateTo}
-                                    min={filters.dateFrom || undefined}
-                                    onChange={updateFilter}
-                                />
-                            </label>
-                        </div>
-                    </section>
-                )}
-
                 {loading ? (
-                    <div className="admin-application-empty">
-                        Loading applications...
+                    <div className="admin-jobs-state">
+                        <div className="admin-jobs-spinner" />
+                        <p>Loading job openings...</p>
                     </div>
-                ) : filteredApplications.length === 0 ? (
-                    <div className="admin-application-empty">
-                        <h3>No applications found</h3>
+                ) : !error && filteredJobs.length === 0 ? (
+                    <div className="admin-jobs-state">
+                        <div className="admin-jobs-empty-icon">⌕</div>
+
+                        <h3>
+                            {jobs.length === 0
+                                ? "No jobs available"
+                                : "No matching jobs found"}
+                        </h3>
+
                         <p>
-                            {applications.length === 0
-                                ? "No application records are available."
-                                : "Try changing your filters or resetting them."}
+                            {jobs.length === 0
+                                ? "Jobs posted by companies will appear here."
+                                : "Try changing your search or filters."}
                         </p>
 
-                        {applications.length > 0 && (
+                        {jobs.length > 0 && (
                             <button
                                 type="button"
+                                className="admin-jobs-reset"
                                 onClick={resetFilters}
                             >
-                                Reset Filters
+                                Clear Filters
                             </button>
                         )}
                     </div>
-                ) : (
-                    <div className="admin-application-table-scroll">
-                        <table className="admin-application-table">
+                ) : !error ? (
+                    <div className="admin-jobs-table-wrapper">
+                        <table className="admin-jobs-table">
                             <thead>
                                 <tr>
-                                    <th>Application ID</th>
-                                    <th>Student User ID</th>
-                                    <th>Job Title</th>
+                                    <th>Job Details</th>
                                     <th>Company</th>
-                                    <th>Applied At</th>
-                                    <th>Updated At</th>
+                                    <th>Location</th>
+                                    <th>Employment</th>
+                                    <th>Salary</th>
+                                    <th>Posted Date</th>
                                     <th>Status</th>
-                                    <th>Remarks</th>
                                 </tr>
                             </thead>
 
                             <tbody>
-                                {filteredApplications.map((application) => (
-                                    <tr key={application.id}>
-                                        <td>#{application.id ?? "—"}</td>
+                                {filteredJobs.map((job, index) => {
+                                    const id = getJobId(job);
+                                    const status = getJobStatus(job);
 
-                                        <td>
-                                            {application.studentUserId ?? "—"}
-                                        </td>
+                                    return (
+                                        <tr
+                                            key={id ?? `job-${index}`}
+                                        >
+                                            <td>
+                                                <div className="admin-jobs-title">
+                                                    {getJobTitle(job)}
+                                                </div>
 
-                                        <td>
-                                            {application.jobTitle ||
-                                                `Job #${application.jobId ?? "—"}`}
-                                        </td>
+                                                <small>
+                                                    Job ID: {id ?? "N/A"}
+                                                </small>
+                                            </td>
 
-                                        <td>
-                                            {application.companyName ||
-                                                "Company unavailable"}
-                                        </td>
+                                            <td>
+                                                {getCompanyName(job)}
+                                            </td>
 
-                                        <td>
-                                            {formatDate(application.appliedAt)}
-                                        </td>
+                                            <td>
+                                                {getLocation(job)}
+                                            </td>
 
-                                        <td>
-                                            {formatDate(application.updatedAt)}
-                                        </td>
+                                            <td>
+                                                {getEmploymentType(job)}
+                                            </td>
 
-                                        <td>
-                                            <span
-                                                className={`admin-application-status status-${String(
-                                                    application.status ?? "unknown"
-                                                ).toLowerCase()}`}
-                                            >
-                                                {formatStatus(application.status)}
-                                            </span>
-                                        </td>
+                                            <td>
+                                                {formatSalary(job)}
+                                            </td>
 
-                                        <td>
-                                            {application.statusRemarks || "—"}
-                                        </td>
-                                    </tr>
-                                ))}
+                                            <td>
+                                                {formatDate(getPostedDate(job))}
+                                            </td>
+
+                                            <td>
+                                                <span
+                                                    className={
+                                                        "admin-jobs-status " +
+                                                        status.toLowerCase()
+                                                    }
+                                                >
+                                                    {status.replaceAll("_", " ")}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>
-                )}
+                ) : null}
             </section>
-        </div>
+        </main>
     );
 }
+
+export default AdminJobs;

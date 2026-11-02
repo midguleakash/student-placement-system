@@ -7,13 +7,52 @@ import StatusBadge from "../../components/company/StatusBadge";
 
 import "./CompanyCandidateDetails.css";
 
+const ROUND_NAMES = {
+    1: "Resume Screening",
+    2: "Technical Interview",
+    3: "HR Interview",
+};
+
+function normalizeRecords(result) {
+    if (Array.isArray(result)) return result;
+    if (Array.isArray(result?.applications)) return result.applications;
+    if (Array.isArray(result?.content)) return result.content;
+    return [];
+}
+
+function normalizeRounds(result) {
+    return Array.isArray(result) ? result : [];
+}
+
+function getRoundStatus(rounds, number) {
+    return rounds.find(
+        (round) => Number(round.roundNumber) === number
+    )?.status?.toUpperCase() || null;
+}
+
+function isPassed(status) {
+    return status === "SHORTLISTED";
+}
+
+function isTerminalApplication(status) {
+    return ["REJECTED", "SELECTED", "HIRED"].includes(status);
+}
+
+function roundActionLabel(status) {
+    if (status === "SHORTLISTED") return "Passed";
+    if (status === "REJECTED") return "Rejected";
+    if (status === "COMPLETED") return "Completed";
+    if (status === "IN_PROGRESS") return "In progress";
+    if (status === "PENDING") return "Started";
+    return null;
+}
+
 function CompanyCandidateDetails() {
     const { applicationId } = useParams();
     const { profile } = useCompanyProfile();
 
     const [application, setApplication] = useState(null);
     const [rounds, setRounds] = useState([]);
-
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
@@ -22,33 +61,30 @@ function CompanyCandidateDetails() {
         setError("");
 
         try {
-            const [applicationResult, roundResult] = await Promise.all([
-                companyApi.getMyApplications(),
-                companyApi.getRecruitmentRounds(applicationId),
-            ]);
-
-            const records = Array.isArray(applicationResult)
-                ? applicationResult
-                : Array.isArray(applicationResult?.applications)
-                    ? applicationResult.applications
-                    : Array.isArray(applicationResult?.content)
-                        ? applicationResult.content
-                        : [];
+            const result = await companyApi.getMyApplications();
+            const records = normalizeRecords(result);
 
             const found = records.find(
-                item =>
+                (item) =>
                     String(item.id ?? item.applicationId) ===
                     String(applicationId)
             );
 
             if (!found) {
-                throw new Error(
+                setApplication(null);
+                setRounds([]);
+                setError(
                     "Application not found, or you do not have access to it."
                 );
+                return;
             }
 
             setApplication(found);
-            setRounds(Array.isArray(roundResult) ? roundResult : []);
+
+            const roundResult =
+                await companyApi.getApplicationRounds(applicationId);
+
+            setRounds(normalizeRounds(roundResult));
         } catch (err) {
             setError(err.message || "Unable to load candidate details.");
         } finally {
@@ -65,12 +101,10 @@ function CompanyCandidateDetails() {
             <section className="company-profile-page">
                 <div className="company-page-state">
                     <h1>Applications are locked</h1>
-
                     <p>
                         Your company profile must be approved before you
                         can manage candidates.
                     </p>
-
                     <Link
                         to="/company/profile"
                         className="company-button primary"
@@ -86,7 +120,7 @@ function CompanyCandidateDetails() {
         return (
             <section className="company-profile-page">
                 <div className="company-page-loading">
-                    Loading candidate details...
+                    Loading candidate details and recruitment history...
                 </div>
             </section>
         );
@@ -115,7 +149,7 @@ function CompanyCandidateDetails() {
         application.student?.fullName ??
         application.student?.name ??
         application.name ??
-        `Student #${application.studentUserId ?? "—"}`;
+        `Student #${application.studentUserId ?? application.studentId ?? "—"}`;
 
     const studentEmail =
         application.studentEmail ??
@@ -126,144 +160,50 @@ function CompanyCandidateDetails() {
     const jobTitle =
         application.jobTitle ??
         application.job?.title ??
+        application.title ??
         "Untitled job";
 
     const status = String(application.status ?? "APPLIED").toUpperCase();
-
     const appliedAt = application.appliedAt ?? application.createdAt;
 
-    const getRound = number =>
-        rounds.find(round => Number(round.roundNumber) === number);
+    const roundOneStatus = getRoundStatus(rounds, 1);
+    const roundTwoStatus = getRoundStatus(rounds, 2);
+    const roundThreeStatus = getRoundStatus(rounds, 3);
 
-    const roundOne = getRound(1);
-    const roundTwo = getRound(2);
-    const roundThree = getRound(3);
+    const applicationClosed = isTerminalApplication(status);
 
-    const terminalStatuses = ["REJECTED", "SELECTED", "HIRED"];
+    const roundOneAvailable = !applicationClosed;
+    const roundTwoAvailable =
+        !applicationClosed && isPassed(roundOneStatus);
+    const roundThreeAvailable =
+        !applicationClosed && isPassed(roundTwoStatus);
 
-    const isTerminal = terminalStatuses.includes(status);
-
-    const canStartRoundOne =
-        !isTerminal && !roundOne;
-
-    const canStartRoundTwo =
-        !isTerminal &&
-        roundOne?.status === "SHORTLISTED" &&
-        !roundTwo;
-
-    const canStartRoundThree =
-        !isTerminal &&
-        roundTwo?.status === "SHORTLISTED" &&
-        !roundThree;
-
-    function getRoundLabel(round) {
-        if (!round) return "Not started";
-
-        switch (round.status) {
-            case "PENDING":
-                return "Ready for evaluation";
-            case "IN_PROGRESS":
-                return "In progress";
-            case "SHORTLISTED":
-                return "Passed";
-            case "REJECTED":
-                return "Rejected";
-            case "COMPLETED":
-                return "Completed";
-            default:
-                return round.status;
-        }
-    }
-
-    function renderRound(number, title, description, round, canStart) {
-        const path =
-            `/company/applications/${applicationId}/rounds/${number}`;
-
-        const terminalRound =
-            round?.status === "REJECTED" ||
-            round?.status === "COMPLETED";
-
-        let action;
-
-        if (isTerminal || round?.status === "REJECTED") {
-            action = (
-                <button
-                    type="button"
-                    className="company-button"
-                    disabled
-                >
-                    Closed
-                </button>
-            );
-        } else if (round && !terminalRound) {
-            action = (
-                <Link
-                    to={path}
-                    className="company-button primary"
-                >
-                    {round.status === "SHORTLISTED"
-                        ? "View Decision"
-                        : "Continue Round"}
-                </Link>
-            );
-        } else if (canStart) {
-            action = (
-                <Link
-                    to={path}
-                    className="company-button primary"
-                >
-                    Open Round {number}
-                </Link>
-            );
-        } else {
-            action = (
-                <button
-                    type="button"
-                    className="company-button"
-                    disabled
-                    title="The previous round must be passed first."
-                >
-                    Locked
-                </button>
-            );
-        }
-
-        return (
-            <div className="candidate-round-item" key={number}>
-                <div>
-                    <span className="candidate-round-number">
-                        {String(number).padStart(2, "0")}
-                    </span>
-                </div>
-
-                <div className="candidate-round-content">
-                    <h3>{title}</h3>
-                    <p>{description}</p>
-
-                    <p>
-                        <strong>Status:</strong>{" "}
-                        {getRoundLabel(round)}
-                    </p>
-
-                    {round?.score !== null &&
-                        round?.score !== undefined &&
-                        round?.score !== "" && (
-                            <p>
-                                <strong>Score:</strong> {round.score}/100
-                            </p>
-                        )}
-
-                    {round?.feedback && (
-                        <p>
-                            <strong>Feedback:</strong> {round.feedback}
-                        </p>
-                    )}
-                </div>
-
-                {action}
-            </div>
-        );
-    }
+    const roundItems = [
+        {
+            number: 1,
+            title: "Round 1 — Resume Screening",
+            description:
+                "Review resume screening, eligibility, matching score, and feedback.",
+            status: roundOneStatus,
+            available: roundOneAvailable,
+        },
+        {
+            number: 2,
+            title: "Round 2 — Technical Interview",
+            description:
+                "Evaluate technical knowledge, problem-solving, projects, and skills.",
+            status: roundTwoStatus,
+            available: roundTwoAvailable,
+        },
+        {
+            number: 3,
+            title: "Round 3 — HR Interview",
+            description:
+                "Assess communication, teamwork, role expectations, and final suitability.",
+            status: roundThreeStatus,
+            available: roundThreeAvailable,
+        },
+    ];
 
     return (
         <section className="company-profile-page">
@@ -272,11 +212,10 @@ function CompanyCandidateDetails() {
                     <span className="company-kicker">
                         RECRUITMENT / CANDIDATE
                     </span>
-
                     <h1>Candidate Details</h1>
-
                     <p>
-                        Review the candidate and manage recruitment rounds.
+                        Review candidate information and manage the
+                        recruitment process.
                     </p>
                 </div>
 
@@ -314,9 +253,7 @@ function CompanyCandidateDetails() {
                     </p>
 
                     {application.statusRemarks && (
-                        <p>
-                            Remarks: {application.statusRemarks}
-                        </p>
+                        <p>Remarks: {application.statusRemarks}</p>
                     )}
                 </div>
 
@@ -327,43 +264,75 @@ function CompanyCandidateDetails() {
                 <h2>Recruitment Progress</h2>
 
                 <p>
-                    Each round becomes available only after the candidate
-                    passes the preceding round.
+                    Each round becomes available only after the required
+                    previous round has been passed. The backend also
+                    validates every action.
                 </p>
 
-                {isTerminal && (
-                    <div
-                        className="company-alert error"
-                        role="status"
-                    >
-                        This application is closed. No further rounds
-                        can be started.
+                {applicationClosed && (
+                    <div className="company-alert">
+                        This application is closed. Current status:{" "}
+                        <strong>{status}</strong>
                     </div>
                 )}
 
-                {renderRound(
-                    1,
-                    "Round 1 — Resume Screening",
-                    "Review eligibility, resume skills, matching score, and screening feedback.",
-                    roundOne,
-                    canStartRoundOne
-                )}
+                {roundItems.map((round) => {
+                    const actionLabel = roundActionLabel(round.status);
+                    const canOpen = round.available;
 
-                {renderRound(
-                    2,
-                    "Round 2 — Technical Interview",
-                    "Evaluate technical knowledge, problem-solving, and project experience.",
-                    roundTwo,
-                    canStartRoundTwo
-                )}
+                    return (
+                        <div
+                            className={`candidate-round-item ${
+                                canOpen ? "" : "candidate-round-disabled"
+                            }`}
+                            key={round.number}
+                        >
+                            <div>
+                                <span className="candidate-round-number">
+                                    {String(round.number).padStart(2, "0")}
+                                </span>
+                            </div>
 
-                {renderRound(
-                    3,
-                    "Round 3 — HR Interview",
-                    "Evaluate communication, role suitability, and final hiring readiness.",
-                    roundThree,
-                    canStartRoundThree
-                )}
+                            <div className="candidate-round-content">
+                                <h3>{round.title}</h3>
+                                <p>{round.description}</p>
+
+                                <p>
+                                    Status:{" "}
+                                    <strong>
+                                        {round.status || "Not started"}
+                                    </strong>
+                                </p>
+                            </div>
+
+                            {canOpen ? (
+                                <Link
+                                    to={`/company/applications/${applicationId}/rounds/${round.number}`}
+                                    className="company-button primary"
+                                >
+                                    {actionLabel ? "View Round" : "Open Round"}
+                                </Link>
+                            ) : (
+                                <button
+                                    type="button"
+                                    className="company-button"
+                                    disabled
+                                    title={
+                                        round.number === 2
+                                            ? "Pass Round 1 first."
+                                            : round.number === 3
+                                                ? "Pass Round 2 first."
+                                                : "This application is closed."
+                                    }
+                                >
+                                    {round.status === "REJECTED"
+                                        ? "Rejected"
+                                        : "Locked"}
+                                </button>
+                            )}
+                        </div>
+                    );
+                })}
 
                 <button
                     type="button"
@@ -371,7 +340,7 @@ function CompanyCandidateDetails() {
                     onClick={loadCandidate}
                     disabled={loading}
                 >
-                    {loading ? "Refreshing..." : "Refresh Progress"}
+                    Refresh Recruitment Status
                 </button>
             </section>
         </section>

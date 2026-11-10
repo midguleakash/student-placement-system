@@ -45,10 +45,18 @@ public class SecurityConfig {
                         ).permitAll()
 
                         .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/auth",
                                 "/api/auth/",
+                                "/api/auth/test"
+                        ).permitAll()
+
+                        // Public authentication endpoints
+                        .requestMatchers(
                                 "/api/auth/login",
                                 "/api/auth/register/**"
                         ).permitAll()
+
 
                         .anyRequest().authenticated()
                 )

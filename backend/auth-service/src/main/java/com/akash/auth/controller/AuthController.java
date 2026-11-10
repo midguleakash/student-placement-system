@@ -17,7 +17,7 @@ public class AuthController {
         this.authService = authService;
     }
 
-    @GetMapping("/")
+    @GetMapping({"/", "/test"})
     public ResponseEntity<String> home() {
         return ResponseEntity.ok("Auth Service is running");
     }

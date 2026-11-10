@@ -45,13 +45,9 @@ public class SecurityConfig {
                         ).permitAll()
 
                         .requestMatchers(
-                                "/",
+                                "/api/auth/",
                                 "/api/auth/login",
-                                "/api/auth/register/send-otp",
-                                "/api/auth/register/verify-otp",
-                                "/api/auth/register/complete",
-                                "/api/auth/register/company/complete",
-                                "/api/internal/users/**"
+                                "/api/auth/register/**"
                         ).permitAll()
 
                         .anyRequest().authenticated()
